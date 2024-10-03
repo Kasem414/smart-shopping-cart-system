@@ -11,5 +11,5 @@ requests
 requests-oauthlib
 sqlparse
 django-jazzmin
-django-grappelli
+
 
