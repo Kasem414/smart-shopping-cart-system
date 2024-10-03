@@ -1,0 +1,15 @@
+Django
+djangorestframework
+djangorestframework-simplejwt
+Pillow
+psycopg2-binary
+mysqlclient
+django-cores-headers
+drf-yasg
+djoser
+requests
+requests-oauthlib
+sqlparse
+django-jazzmin
+django-grappelli
+
