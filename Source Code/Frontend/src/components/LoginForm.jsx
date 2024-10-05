@@ -19,15 +19,20 @@ function LoginForm() {
               password: password
             });
             
-            // Handle success
-            console.log(response.data);
-            alert("Login successful!");
+            // Check if login was successful and token received
+            if (response.data.token) {
+                // Store token in localStorage
+                localStorage.setItem("authToken", response.data.token);
+
+                // Redirect to the store owner's dashboard or another page
+                window.location.href = "/dashboard";
+            } else {
+                setError("Invalid login credentials. Please try again.");
+            }
             
           } catch (err) {
             // Handle error
-            console.error(err);
-            setError("Invalid email or password.");
-            console.log(error);
+            setError("An error occurred during login. Please try again.");
             
           }
         };
@@ -82,6 +87,8 @@ function LoginForm() {
                         </button>
                     </div>
                     </form>
+                    {/* Error display */}
+                    {error && <div className="alert alert-danger mt-3">{error}</div>}
                 </div>
             </div>
         </div>
