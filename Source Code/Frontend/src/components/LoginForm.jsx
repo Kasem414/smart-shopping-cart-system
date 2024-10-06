@@ -1,99 +1,93 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
 import axios from "axios";
-import loginImg from '../imgs/login.svg'
-
+import { useNavigate } from "react-router-dom";
+import loginImg from "../imgs/login.svg";
 
 function LoginForm() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError(""); // Clear previous error
 
-        const [email, setEmail] = useState('');
-        const [password, setPassword] = useState('');
-        const [error, setError] = useState('');
-        
-        const handleLogin = async (e) => {
-          e.preventDefault();
-          
-          try {
-            const response = await axios.post('http://localhost:8000/login/', {
-              email: email,
-              password: password
-            });
-            
-            // Check if login was successful and token received
-            if (response.data.token) {
-                // Store token in localStorage
-                localStorage.setItem("authToken", response.data.token);
+    try {
+      // Send login request
+      const response = await axios.post("http://localhost:8000/login/", {
+        email: email,
+        password: password,
+      });
 
-                // Redirect to the store owner's dashboard or another page
-                window.location.href = "/dashboard";
-            } else {
-                setError("Invalid login credentials. Please try again.");
-            }
-            
-          } catch (err) {
-            // Handle error
-            setError("An error occurred during login. Please try again.");
-            
-          }
-        };
+      const { token, role } = response.data;
+      localStorage.setItem("token", token); // Store token in localStorage
+      localStorage.setItem("role", role); // Store role in localStorage
 
+      // Redirect based on role
+      if (role === "admin") {
+        navigate("/admin/add-store-owner");
+      } else if (role === "store_owner") {
+        navigate("/store-owner/dashboard");
+      } else {
+        setError("Invalid login credentials. Please try again.");
+      }
+    } catch (err) {
+      // Handle error
+      setError("An error occurred during login. Please try again.");
+    }
+  };
 
+  return (
+    <section className="vh-100 d-flex justify-content-center align-items-center">
+      <div className="container">
+        <div className="row d-flex justify-content-center align-items-center h-100">
+          <div className="col-md-6 d-none d-lg-block">
+            <img
+              src={loginImg}
+              className="img-fluid"
+              alt="Sample"
+              width={400}
+            />
+          </div>
+          <div className="col-md-6 col-lg-4">
+            <h2 className="mb-4 text-center">Login</h2>
+            <form onSubmit={handleLogin}>
+              <div className="form-outline mb-4">
+                <input
+                  type="email"
+                  className="form-control"
+                  placeholder="Enter a valid email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
 
+              <div className="form-outline mb-4">
+                <input
+                  type="password"
+                  className="form-control"
+                  placeholder="Enter password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
 
-    return (
-        <section className="vh-100 d-flex justify-content-center align-items-center">
-        <div className="container">
-            <div className="row d-flex justify-content-center align-items-center h-100">
-                <div className="col-md-6 d-none d-lg-block">
-                    <img 
-                    src={loginImg}
-                    className="img-fluid" 
-                    alt="Sample" 
-                    width={400}
-                    />
-                </div>
-                <div className="col-md-6 col-lg-4">
-                    <h2 className='mb-4 text-center'>Login</h2>
-                    <form onSubmit={handleLogin}>
-                    <div className="form-outline mb-4">
-                        <input 
-                        type="email" 
-                        className="form-control"
-                        placeholder="Enter a valid email address"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        />
-                    </div>
-
-                    <div className="form-outline mb-4">
-                        <input 
-                        type="password" 
-                        className="form-control"
-                        placeholder="Enter password" 
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        />
-
-                    </div>
-
-                    <div className="text-center">
-                        <button 
-                        type="submit" 
-                        className="btn btn-primary btn-block"
-                        >
-                        Login
-                        </button>
-                    </div>
-                    </form>
-                    {/* Error display */}
-                    {error && <div className="alert alert-danger mt-3">{error}</div>}
-                </div>
-            </div>
+              <div className="text-center">
+                <button type="submit" className="btn btn-primary btn-block">
+                  Login
+                </button>
+              </div>
+            </form>
+            {/* Error display */}
+            {error && <div className="alert alert-danger mt-3">{error}</div>}
+          </div>
         </div>
-        </section>
-    )
+      </div>
+    </section>
+  );
 }
 
-export default LoginForm
+export default LoginForm;
