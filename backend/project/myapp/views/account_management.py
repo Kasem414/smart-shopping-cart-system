@@ -23,11 +23,11 @@ class SignUpView(APIView):
 # class LoginView(APIView):
 #     serializer_class = LoginSerializer
 #     def post(self,request):
-#         username = request.data["username"]
+#         username = request.data["email"]
 #         password = request.data["password"]
 #         user = authenticate(username=username,password=password)
 #         if user is not None:
-#             if user.is_active and user.is_staff:
+#             if user.is_active and user.account_type=='store_owner':
 #                 refresh = RefreshToken.for_user(user)
 #                 return Response({
 #                     'refresh' : str(refresh),
