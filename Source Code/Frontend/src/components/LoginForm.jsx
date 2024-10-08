@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import loginImg from "../imgs/login.svg";
 
-function LoginForm() {
+function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -15,20 +15,25 @@ function LoginForm() {
 
     try {
       // Send login request
-      const response = await axios.post("http://localhost:8000/login/", {
+      const response = await axios.post("http://127.0.0.1:8000/login/", {
         email: email,
         password: password,
       });
 
-      const { token, role } = response.data;
-      localStorage.setItem("token", token); // Store token in localStorage
+      // const { token, role } = response.data;
+      const role = response.data.user.account_type;
+      localStorage.setItem("access_token", response.data.access); // Store token in localStorage
       localStorage.setItem("role", role); // Store role in localStorage
 
       // Redirect based on role
-      if (role === "admin") {
-        navigate("/admin/add-store-owner");
-      } else if (role === "store_owner") {
-        navigate("/store-owner/dashboard");
+      if (role === "1") {
+        navigate("/system-dashboard");
+      }
+      if (role === "store_owner") {
+        navigate("/store-dashboard");
+      }
+      if (role === "customer") {
+        navigate("/products-catalog");
       } else {
         setError("Invalid login credentials. Please try again.");
       }
@@ -81,6 +86,14 @@ function LoginForm() {
                 </button>
               </div>
             </form>
+            <div className="text-center mt-4">
+              <p>
+                Don't have an account?{" "}
+                <Link to="/sign-up" className="text-primary">
+                  sign up here
+                </Link>
+              </p>
+            </div>
             {/* Error display */}
             {error && <div className="alert alert-danger mt-3">{error}</div>}
           </div>
@@ -90,4 +103,4 @@ function LoginForm() {
   );
 }
 
-export default LoginForm;
+export default Login;

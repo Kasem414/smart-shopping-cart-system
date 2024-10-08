@@ -1,30 +1,21 @@
 import React from 'react';
-import LoginForm from './components/LoginForm';
-import Dashboard from './components/Dashboard';
-import AddStoreOwner from './components/AddStoreOwner';
-import { BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
+import Login from './components/LoginForm';
+import SignUp from './components/SignupForm';
+import StoreDashboard from './components/StoreDashboard';
+import SystemDashboard from './components/SystemDashboard';
+import ProductsCatalog from './components/ProductCatalog';
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 
 const App = () => {
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
-
 
   return (
     <BrowserRouter>
-        <Routes>
-        <Route path="/login" element={<LoginForm />} />
-
-        {/* Protected routes based on role */}
-        <Route
-          path="/admin/add-store-owner"
-          element={token && role === 'admin' ? <AddStoreOwner /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/store-owner/dashboard"
-          element={token && role === 'store_owner' ? <Dashboard /> : <Navigate to="/login" />}
-        />
-
-        {/* Catch-all route */}
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/sign-up" element={<SignUp />} />
+        <Route path="/store-dashboard" element={<StoreDashboard />} />
+        <Route path="/system-dashboard" element={<SystemDashboard />} />
+        <Route path="/products-catalog" element={<ProductsCatalog />} />
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
