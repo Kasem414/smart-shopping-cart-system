@@ -28,23 +28,6 @@ class SignUpView(APIView):
             response={"message":"user was created successfully","data":serializer.data,'token' :token}
             return Response(data=response,status=status.HTTP_201_CREATED)
         return Response({'message':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
-# class LoginView(APIView):
-#     serializer_class = LoginSerializer
-#     def post(self,request):
-#         username = request.data["email"]
-#         password = request.data["password"]
-#         user = authenticate(username=username,password=password)
-#         if user is not None:
-#             if user.is_active and user.account_type=='store_owner':
-#                 refresh = RefreshToken.for_user(user)
-#                 return Response({
-#                     'refresh' : str(refresh),
-#                     'access': str(refresh.access_token)
-#                 })
-#             else:
-#                 return Response({"error":"Account is inactive or not authorized"},status=status.HTTP_401_UNAUTHORIZED)
-#         else:
-#             return Response({"error":"Invalid credentials"},status=status.HTTP_401_UNAUTHORIZED)
 
 class LoginView(generics.GenericAPIView):
     queryset = MyUser.objects.all()
