@@ -27,7 +27,7 @@ function Login() {
 
       // Redirect based on role
       if (role === "system_owner") {
-        navigate("/system-dashboard");
+        window.location.href = 'http://127.0.0.1:8000//admin';
       }
       if (role === "store_owner") {
         navigate("/store-dashboard");
