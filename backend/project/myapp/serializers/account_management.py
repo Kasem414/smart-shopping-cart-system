@@ -19,16 +19,16 @@ class SignUpSerializer(serializers.ModelSerializer):
             'last_name' : {'required' : True},
             'account_type' : {'required' : True}
         }
-        def create(self, validated_data):
-            email = validated_data.get('email')
-            if MyUser.objects.filter(email=email).exists():
-                raise serializers.ValidationError({'message':'Email already exists.'})
-            password = validated_data.pop("password")
-            user =MyUser(validated_data)
-            user.set_password(password)
-            print(f"Hashed Password:",{user.password})
-            user.save()
-            return user
+    def create(self, validated_data):
+            
+        email = validated_data.get('email')
+        if MyUser.objects.filter(email=email).exists():
+            raise serializers.ValidationError({'message':'Email already exists.'})
+        password = validated_data.pop("password")
+        user =MyUser(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
 
 class LoginSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True)

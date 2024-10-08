@@ -21,7 +21,7 @@ class SignUpView(APIView):
     
     def post(self, request,fromat=None):
         data=request.data
-        serializer=SignUpSerializer(data=request.data)
+        serializer=self.serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
             user=serializer.save()
             token= get_token_for_user(user)
