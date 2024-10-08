@@ -26,7 +26,7 @@ function Login() {
       localStorage.setItem("role", role); // Store role in localStorage
 
       // Redirect based on role
-      if (role === "1") {
+      if (role === "system_owner") {
         navigate("/system-dashboard");
       }
       if (role === "store_owner") {
