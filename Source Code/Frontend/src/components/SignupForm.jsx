@@ -172,7 +172,7 @@ const SignUp = () => {
                   onChange={handleChange}
                   required
                 >
-                  <option value="store_owner">Store Owner</option>
+                  <option value="store_owner" selected>Store Owner</option>
                   <option value="customer">Customer</option>
                 </select>
               </div>
