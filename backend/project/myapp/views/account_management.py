@@ -9,15 +9,23 @@ from ..serializers.account_management import SignUpSerializer,LoginSerializer,Us
 from rest_framework.authentication import TokenAuthentication,SessionAuthentication
 from ..models import MyUser
 from rest_framework.request import Request
+def get_token_for_user(user):
+    refresh  = RefreshToken.for_user(user)
+    return {
+        'refresh' : str(refresh),
+        'access'  : str(refresh.access_token),
+    }
 class SignUpView(APIView):
     serializer_class=SignUpSerializer
     permission_classes=[AllowAny]
-    def post(self, request=Request):
+    
+    def post(self, request,fromat=None):
         data=request.data
-        serializer=self.serializer_class(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            response={"message":"user was created successfully","data":serializer.data}
+        serializer=SignUpSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            user=serializer.save()
+            token= get_token_for_user(user)
+            response={"message":"user was created successfully","data":serializer.data,'token' :token}
             return Response(data=response,status=status.HTTP_201_CREATED)
         return Response({'message':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
 # class LoginView(APIView):
@@ -48,4 +56,5 @@ class LoginView(generics.GenericAPIView):
         user = serializer.validated_data['user']
         access_token = AccessToken.for_user(user)
         user_data = UserSerializer(user).data
+        user_data['account_type'] = user.account_type
         return Response({'user':user_data,"access_token": str(access_token)})

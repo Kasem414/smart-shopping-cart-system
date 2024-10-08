@@ -12,7 +12,7 @@ urlpatterns = [
     path('', include('myapp.urls')),
     path("swagger/", schema_view.with_ui('swagger',cache_timeout=0), name="schema-swagger-ui"),
     path('api/',include('myapp.api.urls')),
-    # path('auth/', include('djoser.urls')),
-    # path('auth/', include('djoser.urls.jwt')),
-    # path("auth/", include('djoser.urls.authtoken')),
+    path('auth/', include('djoser.urls')),
+    path('auth/', include('djoser.urls.jwt')),
+    path("auth/", include('djoser.urls.authtoken')),
 ]  + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

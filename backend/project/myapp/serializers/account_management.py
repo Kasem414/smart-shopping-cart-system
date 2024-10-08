@@ -13,7 +13,7 @@ class SignUpSerializer(serializers.ModelSerializer):
     date_of_birth=serializers.DateField()
     class Meta:
         model = MyUser
-        fields=['id','email','first_name','last_name','date_of_birth','profile','password','account_type']
+        fields=['id','email','password','first_name','last_name','date_of_birth','profile','account_type']
         extra_kwargs = {
             'first_name' : {'required' : True},
             'last_name' : {'required' : True},
@@ -24,8 +24,9 @@ class SignUpSerializer(serializers.ModelSerializer):
             if MyUser.objects.filter(email=email).exists():
                 raise serializers.ValidationError({'message':'Email already exists.'})
             password = validated_data.pop("password")
-            user = super().create(**validated_data)
+            user =MyUser(validated_data)
             user.set_password(password)
+            print(f"Hashed Password:",{user.password})
             user.save()
             return user
 
