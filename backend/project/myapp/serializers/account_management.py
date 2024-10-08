@@ -55,3 +55,7 @@ class LoginSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Invalid email or password.')
         attrs['user'] = user
         return attrs
+class StoreOwnerSeializer(serializers.ModelSerializer):
+    class Meta:
+        model = MyUser
+        fields=['id','email','first_name','last_name','date_of_birth','profile','account_type']
