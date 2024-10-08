@@ -19,6 +19,16 @@ class SignUpSerializer(serializers.ModelSerializer):
             'last_name' : {'required' : True},
             'account_type' : {'required' : True}
         }
+    def __init__(self, instance=None, data=..., **kwargs):
+        super().__init__(instance, data, **kwargs)
+        self.fields['account_type'].choices = [
+            ('store_owner','Store Owner'),
+            ('customer','Customer')
+            ]
+    def validate_account_type(self,value):
+        if value == 'system_owner':
+            raise serializers.ValidationError("You cannot create a system owner through this form.")
+        return value
     def create(self, validated_data):
             
         email = validated_data.get('email')
