@@ -6,9 +6,10 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework.permissions import AllowAny,IsAuthenticated,IsAdminUser
 from ..serializers.account_management import SignUpSerializer,LoginSerializer,UserSerializer,StoreOwnerSeializer
-from rest_framework.authentication import TokenAuthentication,SessionAuthentication
+from rest_framework.authentication import TokenAuthentication
 from ..models import MyUser
 from rest_framework.request import Request
+from django.http import HttpResponseRedirect
 def get_token_for_user(user):
     refresh  = RefreshToken.for_user(user)
     return {
@@ -20,19 +21,19 @@ class SignUpView(APIView):
     permission_classes=[AllowAny]
     def post(self, request,fromat=None):
         data=request.data
-        password = request.data['password']
-        confirmation_password = request.data['confirmation_password']
-        if password != confirmation_password:
-            return Response({'title':'Failed Registration','message': 'password and confirmation password doesnt match'}, status=status.HTTP_400_BAD_REQUEST)
-        clean_data = {
-                        'email': request.data['email'],
-                        'password': request.data['password'],
-                        'first_name': request.data['first_name'],
-                        'last_name': request.data['last_name'],
-                        'date_of_birth': request.data['date_of_birth'],
-                        'account_type': request.data['account_type'],
-        }
-        serializer=self.serializer_class(data=clean_data)
+        # password = request.data['password']
+        # confirmation_password = request.data['confirmation_password']
+        # if password != confirmation_password:
+        #     return Response({'title':'Failed Registration','message': 'password and confirmation password doesnt match'}, status=status.HTTP_400_BAD_REQUEST)
+        # clean_data = {
+        #                 'email': request.data['email'],
+        #                 'password': request.data['password'],
+        #                 'first_name': request.data['first_name'],
+        #                 'last_name': request.data['last_name'],
+        #                 'date_of_birth': request.data['date_of_birth'],
+        #                 'account_type': request.data['account_type'],
+        # }
+        serializer=self.serializer_class(data=data)
         if serializer.is_valid(raise_exception=True):
             user=serializer.save()
             token= get_token_for_user(user)
