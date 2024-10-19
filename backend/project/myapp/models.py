@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser,PermissionsMixin
-
+from io import BytesIO
+from PIL import Image
+from django.core.files import File
 class MyUserManager(BaseUserManager):
     def create_user(self, email, password=None,**extra_fields):
         """
@@ -101,3 +103,7 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_image(self):
+        if self.image:
+            return 'http://127.0.0.1:8000' + self.image.url
