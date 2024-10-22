@@ -3,6 +3,7 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser,Permiss
 from io import BytesIO
 from PIL import Image
 from django.core.files import File
+from django.utils.text import slugify
 class MyUserManager(BaseUserManager):
     def create_user(self, email, password=None,**extra_fields):
         """
@@ -70,7 +71,7 @@ class MyUser(AbstractBaseUser,PermissionsMixin):
 
 class Category(models.Model):
     name = models.CharField(max_length=200,unique=True)
-    slug = models.SlugField(max_length=200,unique=True)
+    slug = models.SlugField(unique=True,blank=True)
     class Meta:
         ordering = ['name']
         indexes = [
@@ -79,17 +80,25 @@ class Category(models.Model):
         verbose_name = 'Category'
         verbose_name_plural = 'Categories'
 
+    def save(self,*args, **kwargs):
+        self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
+
+class ProductImage(models.Model):
+    image = models.ImageField(upload_to='media/%y/%m/%d',blank=True)
 
 class Product(models.Model):
     category = models.ForeignKey(Category,related_name='products',on_delete=models.CASCADE)
     name = models.CharField(max_length=200,unique=True)
-    slug = models.CharField(max_length=200,unique=True)
+    slug = models.CharField(unique=True,blank=True)
     description = models.TextField(blank=True,null=True)
     price = models.DecimalField(max_digits=10,decimal_places=2)
     quantity = models.IntegerField()
-    image = models.ImageField(upload_to='media/%y/%m/%d',blank=True)
+    # image = models.ImageField(upload_to='media/%y/%m/%d',blank=True)
+    images = models.ManyToManyField(ProductImage)
     available = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -101,9 +110,12 @@ class Product(models.Model):
         verbose_name = "Product"
         verbose_name_plural = "Products"
 
+    def save(self,*args, **kwargs):
+        self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
     def __str__(self):
         return self.name
 
-    def get_image(self):
-        if self.image:
-            return 'http://127.0.0.1:8000' + self.image.url
+    # def get_image(self):
+    #     if self.image:
+    #         return 'http://127.0.0.1:8000' + self.image.url
