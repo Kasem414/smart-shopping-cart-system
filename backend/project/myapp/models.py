@@ -71,7 +71,7 @@ class MyUser(AbstractBaseUser,PermissionsMixin):
 
 class Category(models.Model):
     name = models.CharField(max_length=200,unique=True)
-    slug = models.SlugField(unique=True,blank=True)
+    slug = models.SlugField(max_length=200,unique=True,blank=True)
     class Meta:
         ordering = ['name']
         indexes = [
@@ -93,7 +93,7 @@ class ProductImage(models.Model):
 class Product(models.Model):
     category = models.ForeignKey(Category,related_name='products',on_delete=models.CASCADE)
     name = models.CharField(max_length=200,unique=True)
-    slug = models.CharField(unique=True,blank=True)
+    slug = models.CharField(max_length=200,unique=True,blank=True)
     description = models.TextField(blank=True,null=True)
     price = models.DecimalField(max_digits=10,decimal_places=2)
     quantity = models.IntegerField()
