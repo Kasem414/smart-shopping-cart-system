@@ -73,7 +73,6 @@ class Category(models.Model):
     name = models.CharField(max_length=200,unique=True)
     slug = models.SlugField(max_length=200,unique=True,blank=True)
     class Meta:
-        ordering = ['name']
         indexes = [
             models.Index(fields=['name']),
             ]
