@@ -40,7 +40,7 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = 'pk'
     serializer_class = CategorySerializer
 
-class CategoryDetailBySlugView(generics.RetrieveAPIView):
+class CategoryDetailBySlugView(generics.RetrieveUpdateDestroyAPIView):
     queryset = CategoryRepository.get_all()
     lookup_field = 'slug'
     serializer_class = CategorySerializer 
