@@ -1,3 +1,4 @@
+from django.forms import ValidationError
 from rest_framework import generics, status
 from rest_framework.response import Response
 from ..repositories.category_repo import CategoryRepository
@@ -14,7 +15,7 @@ class CategoryListView(generics.ListAPIView):
 
 
 class CategoryCreateView(generics.CreateAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsStoreOwner]
     serializer_class = CategorySerializer
     def post(self, request, *args, **kwargs):
         category_data=request.data.copy()
@@ -23,6 +24,8 @@ class CategoryCreateView(generics.CreateAPIView):
         if serializer.is_valid(raise_exception=True):
             name = serializer.validated_data['name']
             slug = serializer.validated_data['slug']
+            if Category.objects.filter(name=name).exists():
+                raise ValidationError({'message':'Category already exists.'})
             category_data = {
                 'name' : name,
                 'slug' : slug
@@ -32,6 +35,7 @@ class CategoryCreateView(generics.CreateAPIView):
         return Response({'message':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
     
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsStoreOwner]
     queryset = CategoryRepository.get_all()
     lookup_field = 'pk'
     serializer_class = CategorySerializer
