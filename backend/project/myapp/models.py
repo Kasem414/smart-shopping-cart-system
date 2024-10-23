@@ -86,8 +86,6 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-class ProductImage(models.Model):
-    image = models.ImageField(upload_to='media/%y/%m/%d',blank=True)
 
 class Product(models.Model):
     category = models.ForeignKey(Category,related_name='products',on_delete=models.CASCADE)
@@ -96,8 +94,8 @@ class Product(models.Model):
     description = models.TextField(blank=True,null=True)
     price = models.DecimalField(max_digits=10,decimal_places=2)
     quantity = models.IntegerField()
+    old_price = models.DecimalField(max_digits=10,decimal_places=2,blank=True,null=True)
     # image = models.ImageField(upload_to='media/%y/%m/%d',blank=True)
-    images = models.ManyToManyField(ProductImage)
     available = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -118,3 +116,7 @@ class Product(models.Model):
     # def get_image(self):
     #     if self.image:
     #         return 'http://127.0.0.1:8000' + self.image.url
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product,related_name='images',on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='media/products/%y/%m/%d',blank=True)
