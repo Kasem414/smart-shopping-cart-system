@@ -29,10 +29,10 @@ function Login() {
       if (role === "system_owner") {
         window.location.href = 'http://127.0.0.1:8000//admin';
       }
-      if (role === "store_owner") {
+      else if (role === "store_owner") {
         navigate("/store-dashboard");
       }
-      if (role === "customer") {
+      else if (role === "customer") {
         navigate("/products-catalog");
       } else {
         setError("Invalid login credentials. Please try again.");
