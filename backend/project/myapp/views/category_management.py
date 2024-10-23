@@ -1,4 +1,3 @@
-from django.forms import ValidationError
 from rest_framework import generics, status
 from rest_framework.response import Response
 from ..repositories.category_repo import CategoryRepository
@@ -6,6 +5,7 @@ from ..models import Category
 from ..serializers.category_management import CategorySerializer
 from ..permissions import IsStoreOwner
 from rest_framework.permissions import AllowAny,IsAuthenticated
+from rest_framework.serializers import ValidationError
 
 
 class CategoryListView(generics.ListAPIView):
