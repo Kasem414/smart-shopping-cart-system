@@ -10,12 +10,12 @@ from rest_framework.serializers import ValidationError
 repo = ProductRepository()
 class ProductListView(generics.ListAPIView):
     queryset = repo.get_all()
-    permission_classes = [AllowAny]
+    permission_classes = [IsStoreOwner]
     serializer_class = ProductSerializer
 
 
 class ProductCreateView(generics.CreateAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsStoreOwner]
     serializer_class = ProductSerializer
     def post(self, request, *args, **kwargs):
         product_data=request.data.copy()
@@ -46,16 +46,17 @@ class ProductCreateView(generics.CreateAPIView):
             images = request.FILES.getlist('images')
             for image in images:
                 ProductImage.objects.create(product=product,image=image)
-            return Response(ProductSerializer(Product).data,status=status.HTTP_201_CREATED)
+            return Response(ProductSerializer(product).data,status=status.HTTP_201_CREATED)
         return Response({'message':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
     
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsStoreOwner]
     queryset = repo.get_all()
     lookup_field = 'pk'
     serializer_class = ProductSerializer
 
 class ProductDetailBySlugView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsStoreOwner]
     queryset = repo.get_all()
     lookup_field = 'slug'
     serializer_class = ProductSerializer 

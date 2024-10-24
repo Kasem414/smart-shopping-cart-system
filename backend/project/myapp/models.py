@@ -93,7 +93,7 @@ class Product(models.Model):
     slug = models.CharField(max_length=200,unique=True,blank=True)
     description = models.TextField(blank=True,null=True)
     price = models.DecimalField(max_digits=10,decimal_places=2)
-    quantity = models.IntegerField(default=1,blank=True)
+    quantity = models.IntegerField(default=0)
     old_price = models.DecimalField(max_digits=10,decimal_places=2,null=True,blank=True)
     # image = models.ImageField(upload_to='media/%y/%m/%d',blank=True)
     available = models.BooleanField(default=True)
@@ -110,14 +110,12 @@ class Product(models.Model):
         if not self.slug:
             self.slug = slugify(self.name)
             super(Product,self).save(*args, **kwargs)
-
     def __str__(self):
         return self.name
 
     # def get_image(self):
     #     if self.image:
     #         return 'http://127.0.0.1:8000' + self.image.url
-
 class ProductImage(models.Model):
     product = models.ForeignKey(Product,related_name='images',on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='media/products/%y/%m/%d',blank=True)
+    image = models.ImageField(upload_to='media/%y/%m/%d',blank=True)
