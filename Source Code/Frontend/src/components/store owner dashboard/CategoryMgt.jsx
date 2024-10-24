@@ -19,7 +19,13 @@ const CategoryManagement = () => {
   // Function to fetch categories from the server
   const fetchCategories = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/categories/");
+      const token = localStorage.getItem('access_token'); // Retrieve the JWT from local storage
+      console.log(token)
+      const response = await axios.get("http://127.0.0.1:8000/categories/", {
+        headers: {
+          'Authorization': `Bearer ${token}`, // Include the JWT in the Authorization header
+        },
+      });
       setCategories(response.data);
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -30,17 +36,17 @@ const CategoryManagement = () => {
   const addCategory = async (e) => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem('access_token'); // Retrieve the JWT from local storage
       const formData = new FormData();
       formData.append("name", newCategory.name);
-      if (newCategory.image) {
-        formData.append("image", newCategory.image);
-      }
-      console.log(formData);
-      
+      // if (newCategory.image) {
+      //   formData.append("image", newCategory.image);
+      // }
 
       const response = await axios.post("http://127.0.0.1:8000/categories/create/", formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`, // Include the JWT in the Authorization header
         },
       });
       setCategories([...categories, response.data]);
@@ -51,9 +57,15 @@ const CategoryManagement = () => {
   };
 
   // Function to delete a category
-  const deleteCategory = async (id) => {
+  const deleteCategory = async (e, id) => {
+    e.preventDefault();
     try {
-      await axios.delete(`http://127.0.0.1:8000/categories/${id}`);
+      const token = localStorage.getItem('access_token');
+      await axios.delete(`http://127.0.0.1:8000/categories/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       setCategories(categories.filter((category) => category.id !== id));
     } catch (error) {
       console.error("Error deleting category:", error);
@@ -142,7 +154,7 @@ const CategoryManagement = () => {
                   required
                 />
               </div>
-              <div className="form-group mb-3">
+              {/* <div className="form-group mb-3">
                 <input
                   type="file"
                   className="form-control"
@@ -150,7 +162,7 @@ const CategoryManagement = () => {
                   onChange={handleEditInputChange}
                   accept="image/*"
                 />
-              </div>
+              </div> */}
               <button type="submit" className="btn btn-primary me-2">
                 Update Category
               </button>
@@ -243,7 +255,7 @@ const CategoryManagement = () => {
                   </button>
                   <button
                     className="btn btn-outline-danger"
-                    onClick={() => deleteCategory(category.id)}
+                    onClick={(e) => deleteCategory(e, category.id)}
                   >
                     <i className="bi bi-trash"></i>
                   </button>

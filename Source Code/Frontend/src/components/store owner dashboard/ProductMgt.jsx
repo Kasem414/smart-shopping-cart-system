@@ -22,6 +22,7 @@ const ProductManagement = () => {
     inStock: true,
     featured: false,
     image: null,
+    quantity: "", // Change this line to an empty string
   });
   const [editingProduct, setEditingProduct] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -35,7 +36,12 @@ const ProductManagement = () => {
   // Fetch products from API
   const fetchProducts = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/products/");
+      const token = localStorage.getItem("access_token");
+      const response = await axios.get("http://127.0.0.1:8000/products/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setProducts(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -45,7 +51,12 @@ const ProductManagement = () => {
   // Fetch categories from API
   const fetchCategories = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/categories/");
+      const token = localStorage.getItem("access_token");
+      const response = await axios.get("http://127.0.0.1:8000/categories/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setCategories(response.data);
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -87,8 +98,10 @@ const ProductManagement = () => {
   };
 
   // Add a new product
-  const addProduct = async () => {
+  const addProduct = async (e) => {
+    e.preventDefault();
     try {
+      const token = localStorage.getItem("access_token");
       const formData = new FormData();
 
       // Append all product data to formData
@@ -111,6 +124,7 @@ const ProductManagement = () => {
         {
           headers: {
             "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -126,6 +140,7 @@ const ProductManagement = () => {
         inStock: true,
         featured: false,
         image: null,
+        quantity: "", // Change this line to an empty string
       });
       setCategory("");
     } catch (error) {
@@ -137,11 +152,30 @@ const ProductManagement = () => {
   };
 
   // Edit an existing product
-  const editProduct = async () => {
+  const editProduct = async (e) => {
+    e.preventDefault();
     try {
+      const token = localStorage.getItem("access_token");
+      const formData = new FormData();
+
+      // Append all product data to formData
+      Object.keys(editingProduct).forEach((key) => {
+        if (key === "image" && editingProduct[key] instanceof File) {
+          formData.append("image", editingProduct[key]);
+        } else {
+          formData.append(key, editingProduct[key]);
+        }
+      });
+
       const response = await axios.put(
-        `http://127.0.0.1:8000/products/${editingProduct.id}`,
-        editingProduct
+        `http://127.0.0.1:8000/products/${editingProduct.id}/`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       const updatedProducts = products.map((product) =>
         product.id === editingProduct.id ? response.data : product
@@ -150,7 +184,8 @@ const ProductManagement = () => {
       setIsEditing(false);
       setEditingProduct(null);
     } catch (error) {
-      alert("Error editing product:", error);
+      console.error("Error editing product:", error);
+      alert("Error editing product. Please try again.");
     }
   };
 
@@ -166,6 +201,7 @@ const ProductManagement = () => {
       inStock: true,
       featured: false,
       image: null,
+      quantity: "",
     });
     setCategory("");
   };
@@ -177,13 +213,24 @@ const ProductManagement = () => {
   };
 
   // Delete a product
-  const deleteProduct = async (id) => {
+  const deleteProduct = async (e, id) => {
+    e.preventDefault();
     try {
-      alert("Are you sure you want to delete this product?");
-      await axios.delete(`http://127.0.0.1:8000/products/${id}`);
-      fetchProducts();
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this product?"
+      );
+      if (confirmDelete) {
+        const token = localStorage.getItem("access_token");
+        await axios.delete(`http://127.0.0.1:8000/products/${id}/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        fetchProducts();
+      }
     } catch (error) {
       console.error("Error deleting product:", error);
+      alert("Error deleting product. Please try again.");
     }
   };
 
@@ -223,7 +270,8 @@ const ProductManagement = () => {
   });
 
   // Function to handle sorting
-  const handleSort = (column) => {
+  const handleSort = (e, column) => {
+    e.preventDefault();
     if (column === sortColumn) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
@@ -351,13 +399,27 @@ const ProductManagement = () => {
                 ))}
               </select>
             </div>
+            <div className="form-group mb-3">
+              <input
+                type="number"
+                className="form-control"
+                name="quantity"
+                placeholder="Quantity"
+                value={
+                  isEditing ? editingProduct.quantity : newProduct.quantity
+                }
+                onChange={isEditing ? handleEditChange : handleInputChange}
+                min={0}
+                required
+              />
+            </div>
             <div className="form-check mb-3">
               <input
                 type="checkbox"
                 className="form-check-input"
                 id="inStock"
                 name="inStock"
-                checked={
+                defaultChecked={
                   isEditing ? editingProduct.inStock : newProduct.inStock
                 }
                 onChange={isEditing ? handleEditChange : handleInputChange}
@@ -390,6 +452,7 @@ const ProductManagement = () => {
                 accept="image/*"
               />
             </div>
+
             {isEditing && editingProduct.image && (
               <div className="mb-3">
                 <img
@@ -480,21 +543,21 @@ const ProductManagement = () => {
             <tr>
               <th scope="col">#</th>
               <th
-                onClick={() => handleSort("name")}
+                onClick={(e) => handleSort(e, "name")}
                 style={{ cursor: "pointer" }}
               >
                 Name{" "}
                 {sortColumn === "name" && (sortOrder === "asc" ? "▲" : "▼")}
               </th>
               <th
-                onClick={() => handleSort("price")}
+                onClick={(e) => handleSort(e, "price")}
                 style={{ cursor: "pointer" }}
               >
                 Price{" "}
                 {sortColumn === "price" && (sortOrder === "asc" ? "▲" : "▼")}
               </th>
               <th
-                onClick={() => handleSort("category")}
+                onClick={(e) => handleSort(e, "category")}
                 style={{ cursor: "pointer" }}
               >
                 Category{" "}
@@ -545,13 +608,19 @@ const ProductManagement = () => {
                   <td>
                     <button
                       className="btn me-2"
-                      onClick={() => handleViewProduct(product)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleViewProduct(product);
+                      }}
                     >
                       <i className="bi bi-eye" style={{ color: "gray" }}></i>
                     </button>
                     <button
                       className="btn me-2"
-                      onClick={() => startEdit(product)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        startEdit(product);
+                      }}
                     >
                       <i
                         className="bi bi-pencil"
@@ -560,7 +629,7 @@ const ProductManagement = () => {
                     </button>
                     <button
                       className="btn"
-                      onClick={() => deleteProduct(product.id)}
+                      onClick={(e) => deleteProduct(e, product.id)}
                     >
                       <i className="bi bi-trash" style={{ color: "red" }}></i>
                     </button>
@@ -644,6 +713,10 @@ const ProductManagement = () => {
                 <p>
                   <strong>Old Price:</strong> ${selectedProduct.oldPrice}
                 </p>
+                <p>
+                  <strong>Quantity:</strong> {selectedProduct.quantity}
+                </p>{" "}
+                {/* Moved to modal */}
                 <p>
                   <strong>Category:</strong>{" "}
                   {categories[selectedProduct.category]?.name || "N/A"}
