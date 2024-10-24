@@ -7,15 +7,20 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True, required=False)
-
     class Meta:
         model = Product
         fields = ['id','category','name','slug','description','price','quantity','old_price','available','images']
+        extra_kwargs = {
+            'quantity' : {'required' : True},
+            'price' : {'required' : True}
+        }
     def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        print(ret)
-        ret['quantity'] = int(instance.quantity)
-        return ret
+        try:
+            ret = super().to_representation(instance)
+            return ret
+        except Exception as e:
+            print(f"Error during serialization: {e}")
+            raise e
     def create(self, validated_data):
         images_data = validated_data.pop('images',[])
         product = Product.objects.create(**validated_data)
