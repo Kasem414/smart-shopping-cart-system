@@ -184,7 +184,7 @@ const CategoryManagement = () => {
                   required
                 />
               </div>
-              <div className="form-group mb-3">
+              {/* <div className="form-group mb-3">
                 <input
                   type="file"
                   className="form-control"
@@ -192,7 +192,7 @@ const CategoryManagement = () => {
                   onChange={handleInputChange}
                   accept="image/*"
                 />
-              </div>
+              </div> */}
               <button type="submit" className="btn btn-success">
                 Add Category
               </button>
