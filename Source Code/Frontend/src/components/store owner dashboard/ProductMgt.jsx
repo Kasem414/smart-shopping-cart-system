@@ -17,15 +17,21 @@ const ProductManagement = () => {
   const [newProduct, setNewProduct] = useState({
     name: "",
     price: "",
-    oldPrice: "",
+    old_price: "",
     description: "",
-    inStock: true,
+    available: true, // Changed from inStock to available
     featured: false,
     image: null,
-    quantity: "", // Change this line to an empty string
+    quantity: "",
   });
   const [editingProduct, setEditingProduct] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState("");
+
+  // When resetting filters
+  const resetFilters = () => {
+    setFilter("");
+    setCategoryFilter("");
+  };
 
   // Fetch products and categories on component mount
   useEffect(() => {
@@ -88,6 +94,12 @@ const ProductManagement = () => {
         ...editingProduct,
         [name]: files[0],
       });
+    } else if (name === "category") {
+      setCategory(value);
+      setEditingProduct({
+        ...editingProduct,
+        category: value,
+      });
     } else {
       const inputValue = type === "checkbox" ? checked : value;
       setEditingProduct({
@@ -102,6 +114,17 @@ const ProductManagement = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("access_token");
+      if (!token) {
+        console.error("No access token found");
+        return;
+      }
+
+      // Check if image is provided
+      if (!newProduct.image) {
+        alert("Please add a product image before submitting.");
+        return;
+      }
+
       const formData = new FormData();
 
       // Append all product data to formData
@@ -114,7 +137,12 @@ const ProductManagement = () => {
       });
 
       // Append category
-      formData.append("category", category);
+      if (category) {
+        formData.append("category", category);
+      } else {
+        console.error("Category is not selected");
+        return;
+      }
 
       console.log("Sending product data:", Object.fromEntries(formData));
 
@@ -135,12 +163,12 @@ const ProductManagement = () => {
       setNewProduct({
         name: "",
         price: "",
-        oldPrice: "",
+        old_price: "",
         description: "",
-        inStock: true,
+        available: true,
         featured: false,
         image: null,
-        quantity: "", // Change this line to an empty string
+        quantity: "",
       });
       setCategory("");
     } catch (error) {
@@ -156,19 +184,27 @@ const ProductManagement = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("access_token");
+      if (!token) {
+        console.error("No access token found");
+        return;
+      }
+
       const formData = new FormData();
 
       // Append all product data to formData
       Object.keys(editingProduct).forEach((key) => {
         if (key === "image" && editingProduct[key] instanceof File) {
           formData.append("image", editingProduct[key]);
-        } else {
+        } else if (key !== "image" && key !== "category") {
           formData.append(key, editingProduct[key]);
         }
       });
 
+      // Append the category
+      formData.append("category", category);
+
       const response = await axios.put(
-        `http://127.0.0.1:8000/products/${editingProduct.id}/`,
+        `http://127.0.0.1:8000/products/${editingProduct.id}`,
         formData,
         {
           headers: {
@@ -177,15 +213,21 @@ const ProductManagement = () => {
           },
         }
       );
+
       const updatedProducts = products.map((product) =>
         product.id === editingProduct.id ? response.data : product
       );
       setProducts(updatedProducts);
       setIsEditing(false);
       setEditingProduct(null);
+      setCategory("");
     } catch (error) {
       console.error("Error editing product:", error);
-      alert("Error editing product. Please try again.");
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+        console.error("Response status:", error.response.status);
+      }
+      alert("Error editing product. Please check the console for details.");
     }
   };
 
@@ -196,9 +238,9 @@ const ProductManagement = () => {
     setNewProduct({
       name: "",
       price: "",
-      oldPrice: "",
+      old_price: "",
       description: "",
-      inStock: true,
+      available: true,
       featured: false,
       image: null,
       quantity: "",
@@ -208,8 +250,9 @@ const ProductManagement = () => {
 
   // Start editing a product
   const startEdit = (product) => {
+    setEditingProduct({ ...product });
+    setCategory(product.category.toString()); // Convert to string if it's a number
     setIsEditing(true);
-    setEditingProduct(product);
   };
 
   // Delete a product
@@ -221,12 +264,13 @@ const ProductManagement = () => {
       );
       if (confirmDelete) {
         const token = localStorage.getItem("access_token");
-        await axios.delete(`http://127.0.0.1:8000/products/${id}/`, {
+        await axios.delete(`http://127.0.0.1:8000/products/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        fetchProducts();
+        // Update the state to remove the deleted product
+        setProducts(products.filter((product) => product.id !== id));
       }
     } catch (error) {
       console.error("Error deleting product:", error);
@@ -246,32 +290,27 @@ const ProductManagement = () => {
     setSelectedProduct(null);
   };
 
-  // Filter products based on search input
+  // Filter products based on search input and category
   const filteredProducts = products.filter(
     (product) =>
       product.name?.toLowerCase().includes(filter.toLowerCase()) &&
-      (categoryFilter === "" || product.category === categoryFilter)
+      (categoryFilter === "" || product.category.toString() === categoryFilter)
   );
 
   // Sort products based on selected column and order
   const sortedProducts = [...filteredProducts].sort((a, b) => {
-    const aValue = a[sortColumn];
-    const bValue = b[sortColumn];
-
-    if (typeof aValue === "string" && typeof bValue === "string") {
+    if (sortColumn === "name") {
       return sortOrder === "asc"
-        ? aValue.localeCompare(bValue)
-        : bValue.localeCompare(aValue);
-    } else {
-      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
-      return 0;
+        ? a.name.localeCompare(b.name)
+        : b.name.localeCompare(a.name);
+    } else if (sortColumn === "price") {
+      return sortOrder === "asc" ? a.price - b.price : b.price - a.price;
     }
+    return 0;
   });
 
   // Function to handle sorting
-  const handleSort = (e, column) => {
-    e.preventDefault();
+  const handleSort = (column) => {
     if (column === sortColumn) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
@@ -327,7 +366,7 @@ const ProductManagement = () => {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              addProduct();
+              addProduct(e);
             }}
           >
             <div className="form-group mb-3">
@@ -357,10 +396,10 @@ const ProductManagement = () => {
               <input
                 type="number"
                 className="form-control"
-                name="oldPrice"
+                name="old_price"
                 placeholder="Old Price (optional)"
                 value={
-                  isEditing ? editingProduct.oldPrice : newProduct.oldPrice
+                  isEditing ? editingProduct.old_price : newProduct.old_price
                 }
                 onChange={isEditing ? handleEditChange : handleInputChange}
                 min={0}
@@ -417,15 +456,15 @@ const ProductManagement = () => {
               <input
                 type="checkbox"
                 className="form-check-input"
-                id="inStock"
-                name="inStock"
+                id="available"
+                name="available"
                 defaultChecked={
-                  isEditing ? editingProduct.inStock : newProduct.inStock
+                  isEditing ? editingProduct.available : newProduct.available
                 }
                 onChange={isEditing ? handleEditChange : handleInputChange}
               />
-              <label className="form-check-label" htmlFor="inStock">
-                In Stock
+              <label className="form-check-label" htmlFor="available">
+                Available
               </label>
             </div>
             <div className="form-check mb-3">
@@ -520,7 +559,7 @@ const ProductManagement = () => {
           >
             <option value="">All Categories</option>
             {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
+              <option key={cat.id} value={cat.id.toString()}>
                 {cat.name}
               </option>
             ))}
@@ -543,26 +582,20 @@ const ProductManagement = () => {
             <tr>
               <th scope="col">#</th>
               <th
-                onClick={(e) => handleSort(e, "name")}
+                onClick={() => handleSort("name")}
                 style={{ cursor: "pointer" }}
               >
                 Name{" "}
                 {sortColumn === "name" && (sortOrder === "asc" ? "▲" : "▼")}
               </th>
               <th
-                onClick={(e) => handleSort(e, "price")}
+                onClick={() => handleSort("price")}
                 style={{ cursor: "pointer" }}
               >
                 Price{" "}
                 {sortColumn === "price" && (sortOrder === "asc" ? "▲" : "▼")}
               </th>
-              <th
-                onClick={(e) => handleSort(e, "category")}
-                style={{ cursor: "pointer" }}
-              >
-                Category{" "}
-                {sortColumn === "category" && (sortOrder === "asc" ? "▲" : "▼")}
-              </th>
+              <th>Category</th> {/* Removed onClick and sorting indicators */}
               <th>Image</th>
               <th scope="col">Actions</th>
             </tr>
@@ -711,7 +744,7 @@ const ProductManagement = () => {
                   <strong>Price:</strong> ${selectedProduct.price}
                 </p>
                 <p>
-                  <strong>Old Price:</strong> ${selectedProduct.oldPrice}
+                  <strong>Old Price:</strong> ${selectedProduct.old_price}
                 </p>
                 <p>
                   <strong>Quantity:</strong> {selectedProduct.quantity}
@@ -719,7 +752,7 @@ const ProductManagement = () => {
                 {/* Moved to modal */}
                 <p>
                   <strong>Category:</strong>{" "}
-                  {categories[selectedProduct.category]?.name || "N/A"}
+                  {getCategoryName(selectedProduct.category)}
                 </p>
                 <p>
                   <strong>Description:</strong>{" "}
@@ -729,7 +762,7 @@ const ProductManagement = () => {
                 </p>
                 <p>
                   <strong>In Stock:</strong>{" "}
-                  {selectedProduct.inStock ? "Yes" : "No"}
+                  {selectedProduct.available ? "Yes" : "No"}
                 </p>
                 <p>
                   <strong>Featured:</strong>{" "}

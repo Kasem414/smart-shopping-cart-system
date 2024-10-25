@@ -4,7 +4,7 @@ import axios from "axios";
 const CategoryManagement = () => {
   // State variables
   const [categories, setCategories] = useState([]);
-  const [newCategory, setNewCategory] = useState({ name: "", image: null });
+  const [newCategory, setNewCategory] = useState({ name: "" });
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
@@ -19,11 +19,11 @@ const CategoryManagement = () => {
   // Function to fetch categories from the server
   const fetchCategories = async () => {
     try {
-      const token = localStorage.getItem('access_token'); // Retrieve the JWT from local storage
-      console.log(token)
+      const token = localStorage.getItem("access_token"); // Retrieve the JWT from local storage
+      console.log(token);
       const response = await axios.get("http://127.0.0.1:8000/categories/", {
         headers: {
-          'Authorization': `Bearer ${token}`, // Include the JWT in the Authorization header
+          Authorization: `Bearer ${token}`, // Include the JWT in the Authorization header
         },
       });
       setCategories(response.data);
@@ -36,21 +36,22 @@ const CategoryManagement = () => {
   const addCategory = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('access_token'); // Retrieve the JWT from local storage
+      const token = localStorage.getItem("access_token"); // Retrieve the JWT from local storage
       const formData = new FormData();
       formData.append("name", newCategory.name);
-      // if (newCategory.image) {
-      //   formData.append("image", newCategory.image);
-      // }
 
-      const response = await axios.post("http://127.0.0.1:8000/categories/create/", formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${token}`, // Include the JWT in the Authorization header
-        },
-      });
+      const response = await axios.post(
+        "http://127.0.0.1:8000/categories/create/",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`, // Include the JWT in the Authorization header
+          },
+        }
+      );
       setCategories([...categories, response.data]);
-      setNewCategory({ name: "", image: null });
+      setNewCategory({ name: "" });
     } catch (error) {
       console.error("Error adding category:", error);
     }
@@ -60,27 +61,26 @@ const CategoryManagement = () => {
   const deleteCategory = async (e, id) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('access_token');
+      const token = localStorage.getItem("access_token"); // Retrieve the JWT from local storage
       await axios.delete(`http://127.0.0.1:8000/categories/${id}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // Include the JWT in the Authorization header
         },
       });
+      // Update the state to remove the deleted category
       setCategories(categories.filter((category) => category.id !== id));
     } catch (error) {
-      console.error("Error deleting category:", error);
+      console.error(
+        "Error deleting category:",
+        error.response ? error.response.data : error.message
+      );
     }
   };
 
   // Handle input changes for new category form
   const handleInputChange = (e) => {
-    
-    const { name, value, files } = e.target;
-    if (name === "image") {
-      setNewCategory({ ...newCategory, image: files[0] });
-    } else {
-      setNewCategory({ ...newCategory, [name]: value });
-    }
+    const { name, value } = e.target;
+    setNewCategory({ ...newCategory, [name]: value });
   };
 
   // Filter and sort categories based on search term and sort order
@@ -113,24 +113,41 @@ const CategoryManagement = () => {
   const editCategory = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.put(`http://localhost:3006/categories/${editingCategory.id}`, editingCategory);
-      
-      setCategories(categories.map(cat => cat.id === editingCategory.id ? response.data : cat));
+      const token = localStorage.getItem("access_token");
+      const response = await axios.put(
+        `http://127.0.0.1:8000/categories/${editingCategory.id}`,
+        { name: editingCategory.name },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setCategories(
+        categories.map((cat) =>
+          cat.id === editingCategory.id ? response.data : cat
+        )
+      );
       setEditingCategory(null);
-      
     } catch (error) {
-      console.error("Error editing category:", error);
+      console.error(
+        "Error editing category:",
+        error.response ? error.response.data : error.message
+      );
     }
   };
 
   // Handle input changes for editing category form
   const handleEditInputChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === "image") {
-      setEditingCategory({ ...editingCategory, newImage: files[0] });
-    } else {
-      setEditingCategory({ ...editingCategory, [name]: value });
-    }
+    const { name, value } = e.target;
+    setEditingCategory((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Function to start editing a category
+  const startEditing = (category) => {
+    setEditingCategory({ ...category });
   };
 
   return (
@@ -154,19 +171,14 @@ const CategoryManagement = () => {
                   required
                 />
               </div>
-              {/* <div className="form-group mb-3">
-                <input
-                  type="file"
-                  className="form-control"
-                  name="image"
-                  onChange={handleEditInputChange}
-                  accept="image/*"
-                />
-              </div> */}
               <button type="submit" className="btn btn-primary me-2">
                 Update Category
               </button>
-              <button type="button" className="btn btn-secondary" onClick={() => setEditingCategory(null)}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setEditingCategory(null)}
+              >
                 Cancel
               </button>
             </form>
@@ -184,15 +196,6 @@ const CategoryManagement = () => {
                   required
                 />
               </div>
-              {/* <div className="form-group mb-3">
-                <input
-                  type="file"
-                  className="form-control"
-                  name="image"
-                  onChange={handleInputChange}
-                  accept="image/*"
-                />
-              </div> */}
               <button type="submit" className="btn btn-success">
                 Add Category
               </button>
@@ -236,20 +239,11 @@ const CategoryManagement = () => {
                 key={category.id}
                 className="list-group-item d-flex justify-content-between align-items-center"
               >
-                <div className="d-flex align-items-center">
-                  {category.image && (
-                    <img
-                      src={category.image}
-                      alt={category.name}
-                      style={{ width: '50px', height: '50px', objectFit: 'cover', marginRight: '10px' }}
-                    />
-                  )}
-                  {category.name}
-                </div>
+                <div className="d-flex align-items-center">{category.name}</div>
                 <div>
                   <button
                     className="btn btn-outline-primary me-2"
-                    onClick={() => setEditingCategory(category)}
+                    onClick={() => startEditing(category)}
                   >
                     <i className="bi bi-pencil"></i>
                   </button>

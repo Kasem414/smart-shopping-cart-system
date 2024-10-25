@@ -172,6 +172,7 @@ const SignUp = () => {
                   onChange={handleChange}
                   required
                 >
+                  <option value="" disabled>Select Account Type</option>
                   <option value="store_owner" selected>Store Owner</option>
                   <option value="customer">Customer</option>
                 </select>
