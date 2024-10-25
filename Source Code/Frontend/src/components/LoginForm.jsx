@@ -22,7 +22,7 @@ function Login() {
 
       // const { token, role } = response.data;
       const role = response.data.user.account_type;
-      localStorage.setItem("access_token", response.data.access); // Store token in localStorage
+      localStorage.setItem("access_token", response.data.access_token); // Store token in localStorage
       localStorage.setItem("role", role); // Store role in localStorage
 
       // Redirect based on role
