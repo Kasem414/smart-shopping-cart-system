@@ -10,7 +10,7 @@ from rest_framework.serializers import ValidationError
 
 class CategoryListView(generics.ListAPIView):
     queryset = CategoryRepository.get_all()
-    permission_classes = [AllowAny]
+    permission_classes = [IsStoreOwner]
     serializer_class = CategorySerializer
 
 
@@ -33,12 +33,13 @@ class CategoryCreateView(generics.CreateAPIView):
         return Response({'message':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
     
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsStoreOwner]
     queryset = CategoryRepository.get_all()
     lookup_field = 'pk'
     serializer_class = CategorySerializer
 
 class CategoryDetailBySlugView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsStoreOwner]
     queryset = CategoryRepository.get_all()
     lookup_field = 'slug'
     serializer_class = CategorySerializer 

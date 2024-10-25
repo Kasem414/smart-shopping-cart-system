@@ -15,7 +15,7 @@ class ProductListView(generics.ListAPIView):
 
 
 class ProductCreateView(generics.CreateAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsStoreOwner]
     serializer_class = ProductSerializer
     def post(self, request, *args, **kwargs):
         product_data=request.data.copy()
@@ -49,39 +49,11 @@ class ProductCreateView(generics.CreateAPIView):
         return Response({'message':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
     
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsStoreOwner]
     queryset = repo.get_all()
     lookup_field = 'pk'
     serializer_class = ProductSerializer
 
-    # def put(self, request, *args, **kwargs):
-    #     product_data=request.data.copy()
-    #     product_data.pop('csrfmiddlewaretoken',None)
-    #     serializer=self.serializer_class(data=product_data)
-    #     if serializer.is_valid(raise_exception=True):
-    #         category = serializer.validated_data['category']
-    #         name = serializer.validated_data['name']
-    #         description = serializer.validated_data['description']
-    #         price = serializer.validated_data['price']
-    #         # quantity = serializer.validated_data['quantity']
-    #         old_price = serializer.validated_data['old_price']
-    #         available = serializer.validated_data['available']
-    #         featured = serializer.validated_data['featured']
-    #         image = serializer.validated_data['image']
-    #         product_data = {
-    #             'category' : category,
-    #             'name' : name,
-    #             'description' : description,
-    #             'price' : price,
-    #             # 'quantity' : quantity,
-    #             'old_price' : old_price,
-    #             'available' : available,
-    #             'featured' : featured,
-    #             'image' : image,
-    #         }
-    #         product = repo.update(product=request.data,data=product_data)
-    #         return Response(ProductSerializer(product).data,status=status.HTTP_200_OK)
-    #     return Response({'message':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
     def put(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = ProductSerializer(instance,data=request.data,partial=True)
@@ -91,7 +63,7 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 class ProductDetailBySlugView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsStoreOwner]
     queryset = repo.get_all()
     lookup_field = 'slug'
     serializer_class = ProductSerializer 
