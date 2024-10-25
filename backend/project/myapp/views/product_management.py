@@ -26,7 +26,7 @@ class ProductCreateView(generics.CreateAPIView):
             name = serializer.validated_data['name']
             description = serializer.validated_data['description']
             price = serializer.validated_data['price']
-            # quantity = serializer.validated_data['quantity']
+            quantity = serializer.validated_data['quantity']
             old_price = request.POST['oldPrice']
             available = serializer.validated_data['available']
             featured = serializer.validated_data['featured']
@@ -38,7 +38,7 @@ class ProductCreateView(generics.CreateAPIView):
                 'name' : name,
                 'description' : description,
                 'price' : price,
-                # 'quantity' : quantity,
+                'quantity' : quantity,
                 'old_price' : old_price,
                 'available' : available,
                 'featured' : featured,
