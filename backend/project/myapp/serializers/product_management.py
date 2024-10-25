@@ -8,17 +8,14 @@ repo = ProductRepository()
 #         fields = ['image']
 
 class ProductSerializer(serializers.ModelSerializer):
-    # images = ProductImageSerializer(many=True, required=False)
     image = serializers.ImageField(required=False)
     class Meta:
         model = Product
         fields = ['id','category','name','description','price','old_price','quantity','available','featured','image']
         extra_kwargs = {
-            # 'quantity' : {'required' : True},
             'price' : {'required' : True},
             'image' : {'required' : False}
         }
-        # read_only_fields = ['category']
     def to_representation(self, instance):
         try:
             ret = super().to_representation(instance)
