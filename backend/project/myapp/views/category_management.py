@@ -15,7 +15,7 @@ class CategoryListView(generics.ListAPIView):
 
 
 class CategoryCreateView(generics.CreateAPIView):
-    permission_classes = [IsStoreOwner]
+    permission_classes = [AllowAny]
     serializer_class = CategorySerializer
     def post(self, request, *args, **kwargs):
         category_data=request.data.copy()
@@ -23,19 +23,17 @@ class CategoryCreateView(generics.CreateAPIView):
         serializer=self.serializer_class(data=category_data)
         if serializer.is_valid(raise_exception=True):
             name = serializer.validated_data['name']
-            slug = serializer.validated_data['slug']
             if Category.objects.filter(name=name).exists():
                 raise ValidationError({'message':'Category already exists.'})
             category_data = {
                 'name' : name,
-                'slug' : slug
             }
             category = CategoryRepository.create(category_data=category_data)
             return Response(CategorySerializer(category).data,status=status.HTTP_201_CREATED)
         return Response({'message':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
     
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsStoreOwner]
+    permission_classes = [AllowAny]
     queryset = CategoryRepository.get_all()
     lookup_field = 'pk'
     serializer_class = CategorySerializer

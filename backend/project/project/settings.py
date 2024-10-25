@@ -194,3 +194,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #     'django.contrib.auth.backends.ModelBackend',
 #     'myapp.authentication.EmailBackend',
 # ]
+APPEND_SLASH = False

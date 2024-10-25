@@ -11,11 +11,11 @@ urlpatterns = [
     # Category management endpoints
     path("categories/",CategoryListView.as_view() , name="category-list"),
     path("categories/create/",CategoryCreateView.as_view() , name="category-create"),
-    path("categories/<int:pk>/",CategoryDetailView.as_view() , name="category-detail-update-delete"),
-    path("categories/<slug:slug>/", CategoryDetailBySlugView.as_view() , name="category-detail-update-delete-slug"),
+    path("categories/<int:pk>",CategoryDetailView.as_view() , name="category-detail-update-delete"),
+    path("categories/<slug:slug>", CategoryDetailBySlugView.as_view() , name="category-detail-update-delete-slug"),
     # Product management endpoints
     path("products/",ProductListView.as_view() , name="product-list"),
     path("products/create/",ProductCreateView.as_view() , name="product-create"),
-    path("products/<int:pk>/",ProductDetailView.as_view() , name="product-detail-update-delete"),
-    path("products/<slug:slug>/", ProductDetailBySlugView.as_view() , name="product-detail-update-delete-slug"),
+    path("products/<int:pk>",ProductDetailView.as_view() , name="product-detail-update-delete"),
+    path("products/<slug:slug>", ProductDetailBySlugView.as_view() , name="product-detail-update-delete-slug"),
 ]

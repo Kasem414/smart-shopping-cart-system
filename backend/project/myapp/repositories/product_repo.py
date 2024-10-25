@@ -37,10 +37,20 @@ class ProductRepository:
     def create(data):
         return Product.objects.create(**data)
     @staticmethod
-    def update(self,product,data):
-        for attr, value in data.items():
-            setattr(product,attr,value)
+    def update(product,data):
+        if isinstance(product,Product):
+            for attr, value in data.items():
+                setattr(product,attr,value)
             product.save()
+            return product
+        else:
+            raise TypeError("Expected a product instance, got something else.")
+    # def update(instance,validated_data):
+    #     for field, value in validated_data.items():
+    #         setattr(instance,field,value)
+    #     print(instance)
+    #     instance.save()
+    #     return instance
     @staticmethod
     def delete(self,product):
         product.delete()
