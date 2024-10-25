@@ -15,7 +15,7 @@ class ProductListView(generics.ListAPIView):
 
 
 class ProductCreateView(generics.CreateAPIView):
-    permission_classes = [IsStoreOwner]
+    permission_classes = [AllowAny]
     serializer_class = ProductSerializer
     def post(self, request, *args, **kwargs):
         product_data=request.data.copy()
@@ -30,7 +30,7 @@ class ProductCreateView(generics.CreateAPIView):
             old_price = request.POST['oldPrice']
             available = serializer.validated_data['available']
             featured = serializer.validated_data['featured']
-            image = serializer.validated_data['image']
+            image = request.FILES['image']
             if Product.objects.filter(name=name).exists():
                 raise ValidationError({'message':'Product already exists.'})
             product_data = {

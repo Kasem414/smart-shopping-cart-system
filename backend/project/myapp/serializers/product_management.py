@@ -9,9 +9,10 @@ repo = ProductRepository()
 
 class ProductSerializer(serializers.ModelSerializer):
     # images = ProductImageSerializer(many=True, required=False)
+    image = serializers.ImageField(required=False)
     class Meta:
         model = Product
-        fields = ['id','category','name','description','price','old_price','available','featured','image']
+        fields = ['id','category','name','description','price','old_price','quantity','available','featured','image']
         extra_kwargs = {
             # 'quantity' : {'required' : True},
             'price' : {'required' : True},
