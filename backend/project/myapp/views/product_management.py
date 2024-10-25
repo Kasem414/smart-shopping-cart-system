@@ -15,7 +15,7 @@ class ProductListView(generics.ListAPIView):
 
 
 class ProductCreateView(generics.CreateAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsStoreOwner]
     serializer_class = ProductSerializer
     def post(self, request, *args, **kwargs):
         product_data=request.data.copy()
@@ -27,7 +27,7 @@ class ProductCreateView(generics.CreateAPIView):
             description = serializer.validated_data['description']
             price = serializer.validated_data['price']
             quantity = serializer.validated_data['quantity']
-            old_price = request.POST['oldPrice']
+            old_price = serializer.validated_data['old_price']
             available = serializer.validated_data['available']
             featured = serializer.validated_data['featured']
             image = request.FILES['image']

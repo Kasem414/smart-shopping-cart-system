@@ -14,18 +14,7 @@ class MyUserAdmin(admin.ModelAdmin):
         return True
     def has_module_permission(self, request):
         return True
-class CategoryAdmin(admin.ModelAdmin):
-    def has_view_permission(self, request, obj = ...):
-        return True
-    def has_module_permission(self, request):
-        return True
-class ProductAdmin(admin.ModelAdmin):
-    def has_view_permission(self, request, obj = ...):
-        return True
-    def has_module_permission(self, request):
-        return True
 admin_site.register(MyUser,MyUserAdmin)
-admin_site.register(Category,CategoryAdmin)
-admin_site.register(Product,ProductAdmin)
+
 
 
