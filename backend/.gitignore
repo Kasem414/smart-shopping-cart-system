@@ -1,1 +1,5 @@
 sscs_env/
+backend/project/myapp/migrations/0002_myuser_store_name.py
+backend/project/myapp/migrations/0003_remove_myuser_store_name.py
+backend/project/myapp/migrations/0004_category_product.py
+backend/project/myapp/migrations/0005_alter_product_quantity_alter_productimage_image.py
