@@ -16,13 +16,13 @@ class ProductSerializer(serializers.ModelSerializer):
             'price' : {'required' : True},
             'image' : {'required' : False}
         }
-    def to_representation(self, instance):
-        try:
-            ret = super().to_representation(instance)
-            return ret
-        except Exception as e:
-            print(f"Error during serialization: {e}")
-            raise e
+    # def to_representation(self, instance):
+    #     try:
+    #         ret = super().to_representation(instance)
+    #         return ret
+    #     except Exception as e:
+    #         print(f"Error during serialization: {e}")
+    #         raise e
     def create(self, validated_data):
         product = Product.objects.create(**validated_data)
         return product
@@ -36,14 +36,4 @@ class ProductSerializer(serializers.ModelSerializer):
             instance.save()
         print(instance)
         return instance
-    # def update(self,instance, validated_data):
-    #     print("instance in serializer:",instance)
-    #     print("\nvalidated data:",validated_data)
-    #     return repo.update(instance,validated_data)
-        # category_data = validated_data.pop('category',None)
-        # if category_data:
-        #     instance.category_id = category_data.id
-        #     instance.name = validated_data.get('name',instance.name)
-        #     instance.price = validated_data.get('price',instance.price)
-        #     instance.save()
-        #     return instance
+
