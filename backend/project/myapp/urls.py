@@ -2,6 +2,7 @@ from django.urls import path,include
 from .views.account_management import SignUpView,LoginView,StoreOwnerList,DeactivateUserView
 from .views.category_management import CategoryCreateView,CategoryDetailBySlugView,CategoryDetailView,CategoryListView
 from .views.product_management import ProductCreateView,ProductDetailBySlugView,ProductListView,ProductDetailView
+from .views.product_catalog import ProductCatalogView,ProductDetailCatalogView, ProductByStoreView
 urlpatterns = [
     # Account management 
     path("signup/", SignUpView.as_view() , name="signup"),
@@ -18,4 +19,8 @@ urlpatterns = [
     path("products/create/",ProductCreateView.as_view() , name="product-create"),
     path("products/<int:pk>",ProductDetailView.as_view() , name="product-detail-update-delete"),
     path("products/<slug:slug>", ProductDetailBySlugView.as_view() , name="product-detail-update-delete-slug"),
+    # Product catalog endpoints
+    path("catalog/", ProductCatalogView.as_view(), name="product-catalog-list"),
+    path("catalog/details/<int:id>/", ProductDetailCatalogView.as_view(), name="product-catalog-detail"),
+    path("catalog/store/<int:id>/", ProductByStoreView.as_view(), name="product-catalog-by-store"),
 ]

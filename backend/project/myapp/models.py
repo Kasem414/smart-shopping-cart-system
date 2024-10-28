@@ -119,3 +119,7 @@ class Product(models.Model):
 # class ProductImage(models.Model):
 #     product = models.ForeignKey(Product,related_name='images',on_delete=models.CASCADE)
 #     image = models.ImageField(upload_to='media/%y/%m/%d',blank=True)
+
+# class Store(models.Model):
+#     name = models.CharField(max_length=200)
+#     logo = models.ImageField(upload_to='media/%y/%m/%d',blank=True)
