@@ -1,10 +1,11 @@
 from django.urls import path,include
-from .views.account_management import SignUpView,LoginView,StoreOwnerList,DeactivateUserView,ListCustomerView
+from .views.account_management import SignUpView,LoginView,StoreOwnerList,DeactivateUserView,ListCustomerView,get_current_user
 from .views.category_management import CategoryCreateView,CategoryDetailBySlugView,CategoryDetailView,CategoryListView
 from .views.product_management import ProductCreateView,ProductDetailBySlugView,ProductListView,ProductDetailView
 from .views.product_catalog import ProductCatalogView,ProductDetailCatalogView, ProductByStoreView
 from rest_framework.routers import DefaultRouter
 from .views.shoppinglist_management import ProductViewSet, ShoppingListViewSet
+from .views.product_search import ProductSearchView
 # from .views.shoppinglist_management import ShoppingListDetailView,RemoveItemFromShoppingListView,AddItemToShoppingListView,MarkItemPickedView,UpdateItemQuantityView,ShoppingListListCreateView
 router = DefaultRouter()
 router.register(r'shopping-products',ProductViewSet,basename='shopping-products')
@@ -15,6 +16,7 @@ urlpatterns = [
     path("login/", LoginView.as_view() , name="login"),
     path("GetStoreOwner/", StoreOwnerList.as_view(), name="list-store-owner"),
     path("GetCustomer/", ListCustomerView.as_view(), name="list-customer"),
+    path("current/", get_current_user, name="current-user"),
     path("GetStoreOwner/<int:id>/deactivate/", DeactivateUserView.as_view(), name="deactivate-store-owner"),
     # Category management endpoints
     path("categories/",CategoryListView.as_view() , name="category-list"),
@@ -31,7 +33,7 @@ urlpatterns = [
     path("catalog/details/<int:id>/", ProductDetailCatalogView.as_view(), name="product-catalog-detail"),
     path("catalog/store/<int:id>/", ProductByStoreView.as_view(), name="product-catalog-by-store"),
     # Product Search
-
+    path("search/", ProductSearchView.as_view(), name="product-search"),
     # Shopping List Management endpoints
     path('',include(router.urls)),
     path("shopping-lists/add-to-list/", ShoppingListViewSet.as_view({'post': 'add_to_list'}), name="add-to-list"),    

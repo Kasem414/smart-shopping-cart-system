@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny,IsAuthenticated,IsAdminUser
 from ..serializers.account_management import SignUpSerializer,LoginSerializer,UserSerializer,StoreOwnerSeializer,CustomerSeializer
 from ..models import MyUser
+from rest_framework.decorators import api_view
 def get_token_for_user(user):
     refresh  = RefreshToken.for_user(user)
     return {
@@ -65,3 +66,12 @@ class ListCustomerView(generics.ListAPIView):
     queryset = MyUser.objects.filter(account_type="customer")
     serializer_class = CustomerSeializer
     permission_classes = [AllowAny]
+
+@api_view(['GET'])
+def get_current_user(request):
+    if request.user.is_authenticated:
+        user = request.user
+        serializer = CustomerSeializer(user)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+    else:
+        return Response({"detail":"Authentication credintials were not provided."},status=status.HTTP_401_UNAUTHORIZED)
