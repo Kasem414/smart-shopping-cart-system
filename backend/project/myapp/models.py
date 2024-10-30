@@ -4,6 +4,8 @@ from io import BytesIO
 from PIL import Image
 from django.core.files import File
 from django.utils.text import slugify
+from django.conf import settings
+from django.utils import timezone
 class MyUserManager(BaseUserManager):
     def create_user(self, email, password=None,**extra_fields):
         """
@@ -123,3 +125,24 @@ class Product(models.Model):
 # class Store(models.Model):
 #     name = models.CharField(max_length=200)
 #     logo = models.ImageField(upload_to='media/%y/%m/%d',blank=True)
+
+class ShoppingList(models.Model):
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="shopping_lists")
+    name = models.CharField(max_length=255,null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True) 
+    @property
+    def total_cost(self):
+        # Calculate the total price for all items in the list
+        return sum(item.quantity * item.product.price for item in self.items.all())
+    def __str__(self):
+        return f"{self.name} - {self.customer.first_name}"
+class ShoppingListItem(models.Model):
+    shopping_list = models.ForeignKey(ShoppingList,on_delete=models.CASCADE,related_name="items")
+    product = models.ForeignKey(Product,on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    picked_up = models.BooleanField(default=False)
+    @property
+    def total_price(self):
+        return self.product.price * self.quantity
+    def __str__(self):
+        return f"{self.product.name} (x{self.quantity}) - {'Picked Up' if self.picked_up else 'Not Picked Up'}"

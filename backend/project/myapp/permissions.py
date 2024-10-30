@@ -5,3 +5,9 @@ class IsStoreOwner(BasePermission):
     def has_permission(self, request, view):
         if request.user.is_authenticated and request.user.account_type == 'store_owner':
             return True
+        
+
+class IsCustomer(BasePermission):
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and request.user.account_type == 'customer':
+            return True
