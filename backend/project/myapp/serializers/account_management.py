@@ -59,3 +59,8 @@ class StoreOwnerSeializer(serializers.ModelSerializer):
     class Meta:
         model = MyUser
         fields=['id','email','first_name','last_name','date_of_birth','profile','account_type']
+
+class CustomerSeializer(serializers.ModelSerializer):
+    class Meta:
+        model = MyUser
+        fields=['id','email','first_name','last_name','date_of_birth','profile','account_type']

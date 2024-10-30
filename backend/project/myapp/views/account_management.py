@@ -4,7 +4,7 @@ from rest_framework import status,generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny,IsAuthenticated,IsAdminUser
-from ..serializers.account_management import SignUpSerializer,LoginSerializer,UserSerializer,StoreOwnerSeializer
+from ..serializers.account_management import SignUpSerializer,LoginSerializer,UserSerializer,StoreOwnerSeializer,CustomerSeializer
 from ..models import MyUser
 def get_token_for_user(user):
     refresh  = RefreshToken.for_user(user)
@@ -61,3 +61,7 @@ class DeactivateUserView(APIView):
             return Response({"error":"User not found"},status=status.HTTP_404_NOT_FOUND)
 
 
+class ListCustomerView(generics.ListAPIView):
+    queryset = MyUser.objects.filter(account_type="customer")
+    serializer_class = CustomerSeializer
+    permission_classes = [AllowAny]
