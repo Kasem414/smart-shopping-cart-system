@@ -33,7 +33,7 @@ class CategoryCreateView(generics.CreateAPIView):
         return Response({'message':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
     
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsStoreOwner]
+    permission_classes = [AllowAny]
     queryset = CategoryRepository.get_all()
     lookup_field = 'pk'
     serializer_class = CategorySerializer
