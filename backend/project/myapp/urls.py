@@ -1,5 +1,5 @@
 from django.urls import path,include
-from .views.account_management import SignUpView,LoginView,StoreOwnerList,DeactivateUserView,ListCustomerView,get_current_user
+from .views.account_management import SignUpView,LoginView,StoreOwnerList,DeactivateUserView,ListCustomerView,get_current_user,ActivateUserView
 from .views.category_management import CategoryCreateView,CategoryDetailBySlugView,CategoryDetailView,CategoryListView
 from .views.product_management import ProductCreateView,ProductDetailBySlugView,ProductListView,ProductDetailView
 from .views.product_catalog import ProductCatalogView,ProductDetailCatalogView, ProductByStoreView
@@ -17,7 +17,8 @@ urlpatterns = [
     path("GetStoreOwner/", StoreOwnerList.as_view(), name="list-store-owner"),
     path("GetCustomer/", ListCustomerView.as_view(), name="list-customer"),
     path("current/", get_current_user, name="current-user"),
-    path("GetStoreOwner/<int:id>/deactivate/", DeactivateUserView.as_view(), name="deactivate-store-owner"),
+    path("GetStoreOwner/<int:id>/deactivate/", DeactivateUserView.as_view(), name="deactivate-user"),
+    path("user/<int:id>/activate/", ActivateUserView.as_view(), name="activate-user"),
     # Category management endpoints
     path("categories/",CategoryListView.as_view() , name="category-list"),
     path("categories/create/",CategoryCreateView.as_view() , name="category-create"),
