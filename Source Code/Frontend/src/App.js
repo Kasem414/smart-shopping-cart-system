@@ -1,25 +1,52 @@
 import React from 'react';
-import Login from './components/LoginForm';
-import SignUp from './components/SignupForm';
+import { BrowserRouter, Route, Routes, Navigate, useLocation } from 'react-router-dom';
+import Login from './components/auth/LoginForm';
+import SignUp from './components/auth/SignupForm';
 import SystemDashboard from './components/SystemDashboard';
-import ProductsCatalog from './components/ProductCatalog';
 import StoreDashboard from './components/store owner dashboard/StoreDashboard';
-import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
-
-const App = () => {
+import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';
+import Home from './components/pages/Home';
+import ProductList from './components/pages/ProductList';
+import './App.css';
+import ProductDetails from './components/pages/ProductDetails';
+import ShoppingList from './components/pages/ShoppingList';
+import { UserProvider } from './components/contexts/UserContext';
+import { ShoppingListProvider } from './components/contexts/ShoppingListContext';
+const AppContent = () => {
+  const location = useLocation();
+  const hideHeaderFooter = location.pathname === '/store-dashboard';
 
   return (
-    <BrowserRouter>
+    <>
+      {!hideHeaderFooter && <Header />}
       <Routes>
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/system-dashboard" element={<SystemDashboard />} />
-        <Route path="/products-catalog" element={<ProductsCatalog />} />
         <Route path="/store-dashboard" element={<StoreDashboard />} />
-        <Route path="*" element={<Navigate to="/login" />} />
+        <Route path="/product-list" element={<ProductList />} />
+        <Route path="/product-details" element={<ProductDetails />} />
+        <Route path="/shopping-list" element={<ShoppingList />} />
+        <Route path="/product-details/:productId" element={<ProductDetails />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-    </BrowserRouter>
-  )
-}
+      {!hideHeaderFooter && <Footer />}
+    </>
+  );
+};
 
-export default App
+const App = () => {
+  return (
+    <BrowserRouter>
+      <UserProvider>
+        <ShoppingListProvider>
+          <AppContent />
+        </ShoppingListProvider>
+      </UserProvider>
+    </BrowserRouter>
+  );
+};
+
+export default App;

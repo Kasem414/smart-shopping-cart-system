@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import loginImg from "../imgs/login.svg";
+import loginImg from "../../images/greenLogin.svg";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -26,14 +26,15 @@ function Login() {
       localStorage.setItem("role", role); // Store role in localStorage
 
       // Redirect based on role
-      if (role === "system_owner") {
+      if (role === "1") {
         window.location.href = 'http://127.0.0.1:8000//admin';
       }
       else if (role === "store_owner") {
         navigate("/store-dashboard");
       }
       else if (role === "customer") {
-        navigate("/products-catalog");
+        navigate("/");
+        window.location.reload();
       } else {
         setError("Invalid login credentials. Please try again.");
       }
@@ -52,7 +53,7 @@ function Login() {
               src={loginImg}
               className="img-fluid"
               alt="Sample"
-              width={400}
+              width={450}
             />
           </div>
           <div className="col-md-6 col-lg-4">

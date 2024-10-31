@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import img from "../imgs/signup.svg";
+import img from "../../images/green sign up.svg";
 import { Link, useNavigate } from "react-router-dom";
 
 const SignUp = () => {
@@ -194,7 +194,7 @@ const SignUp = () => {
             </div>
           </div>
 
-          <div className="col-md-5 d-none d-lg-block">
+          <div className="col-md-4 d-none d-lg-block">
             <h2 className="mb-4">Sign Up</h2>
             <img src={img} className="img-fluid" alt="Sample" width={460} />
           </div>
