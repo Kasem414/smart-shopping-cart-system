@@ -2,7 +2,7 @@ from ..models import Product,Category
 from rest_framework import generics, status
 from rest_framework.response import Response
 from ..serializers.product_management import ProductSerializer
-from ..serializers.catalog_serializer import ProductStoreSerializer
+from ..serializers.catalog_serializer import ProductStoreSerializer,ProductCatalogSerializer
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.serializers import ValidationError
 from ..repositories.product_repo import ProductRepository
@@ -16,7 +16,7 @@ class ProductCatalogView(generics.ListAPIView):
 class ProductDetailCatalogView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
     queryset = repo.get_all()
-    serializer_class = ProductSerializer
+    serializer_class = ProductCatalogSerializer
 
     def get(self, request, *args, **kwargs):
         product_data = repo.get_product_by_id(product_id=kwargs['id'])

@@ -115,9 +115,9 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-    # def get_image(self):
-    #     if self.image:
-    #         return 'http://127.0.0.1:8000' + self.image.url
+    def get_image(self):
+         if self.image:
+            return 'http://127.0.0.1:8000' + self.image.url
 # class ProductImage(models.Model):
 #     product = models.ForeignKey(Product,related_name='images',on_delete=models.CASCADE)
 #     image = models.ImageField(upload_to='media/%y/%m/%d',blank=True)
