@@ -14,12 +14,10 @@ import ShoppingList from './components/pages/ShoppingList';
 import { UserProvider } from './components/contexts/UserContext';
 import { ShoppingListProvider } from './components/contexts/ShoppingListContext';
 const AppContent = () => {
-  const location = useLocation();
-  const hideHeaderFooter = location.pathname === '/store-dashboard';
 
   return (
     <>
-      {!hideHeaderFooter && <Header />}
+      <Header />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
@@ -32,7 +30,7 @@ const AppContent = () => {
         <Route path="/product-details/:productId" element={<ProductDetails />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-      {!hideHeaderFooter && <Footer />}
+      <Footer />
     </>
   );
 };

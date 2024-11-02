@@ -1,26 +1,23 @@
 import React, { useState, useContext } from "react";
 import Grocerylogo from "../../images/smartshop.png";
 import menubanner from "../../images/menu-banner.jpg";
-import productimage1 from "../../images/product-img-1.jpg";
-import productimage2 from "../../images/product-img-2.jpg";
-import productimage3 from "../../images/product-img-3.jpg";
-import productimage4 from "../../images/product-img-4.jpg";
-import productimage5 from "../../images/product-img-5.jpg";
 import { Link } from "react-router-dom";
 import { ShoppingListContext } from "../contexts/ShoppingListContext";
 import { UserContext } from "../contexts/UserContext";
 
 const Header = () => {
-  const {user, logout} = useContext(UserContext)
+  const { user, logout } = useContext(UserContext);
   const [isOpen, setIsOpen] = useState(false);
   const { shoppingList } = useContext(ShoppingListContext);
+  const itemCount = shoppingList.items.length;
 
   const handleClick = () => {
     setIsOpen(!isOpen);
   };
 
   return (
-    <nav className="navbar navbar-expand-md bg-body-tertiary">
+    <nav className="navbar navbar-expand-md bg-body-tertiary fixed-top shadow-sm">
+      <div style={{ height: '76px' }}></div>
       <div className="container-fluid">
         {/* Logo aligned to the left */}
         <Link className="navbar-brand" to="/">
@@ -243,17 +240,21 @@ const Header = () => {
             </li>
 
             <li className="nav-item">
-              <Link className="nav-link position-relative text-muted" to="/shopping-list">
+              <Link
+                className="nav-link position-relative text-muted"
+                to="/shopping-list"
+              >
                 <i
-                  className="bi bi-basket2"
-                  style={{ fontSize: "1.5rem"}}
+                  className="bi bi-cart3"
+                  style={{ fontSize: "1.5rem" }}
                   title="shopping list"
                 ></i>
-                {/* {shoppingList.items.length > 0 && (
-                  <span className="position-absolute start-5 translate-middle badge rounded-pill bg-success">
-                    {shoppingList.items.length}
+                {itemCount > 0 && (
+                  <span className="position-absolute top-25 start-75 translate-middle badge rounded-pill bg-success">
+                    {itemCount}
+                    <span className="visually-hidden">items in cart</span>
                   </span>
-                )} */}
+                )}
               </Link>
             </li>
 
@@ -261,15 +262,21 @@ const Header = () => {
             {user ? (
               <>
                 <li className="nav-item">
-                  <span className="nav-link text-muted ms-5">Welcome, {user.first_name} {user.last_name}</span>
+                  <span className="nav-link text-muted ms-5">
+                    Welcome, {user.first_name} {user.last_name}
+                  </span>
                 </li>
                 <li className="nav-item">
-                  <button 
-                    className="nav-link text-muted border-0 bg-transparent" 
+                  <button
+                    className="nav-link text-muted border-0 bg-transparent"
                     onClick={logout}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: "pointer" }}
                   >
-                    <i className="bi bi-box-arrow-right" style={{ fontSize: "1.5rem" }} title="logout"></i>
+                    <i
+                      className="bi bi-box-arrow-right"
+                      style={{ fontSize: "1.5rem" }}
+                      title="logout"
+                    ></i>
                   </button>
                 </li>
               </>
@@ -277,12 +284,20 @@ const Header = () => {
               <>
                 <li className="nav-item">
                   <Link className="nav-link text-muted" to="/login">
-                    <i className="bi bi-box-arrow-in-right" style={{ fontSize: "1.5rem" }} title="login"></i>
+                    <i
+                      className="bi bi-box-arrow-in-right"
+                      style={{ fontSize: "1.5rem" }}
+                      title="login"
+                    ></i>
                   </Link>
                 </li>
                 <li className="nav-item">
                   <Link className="nav-link text-muted" to="/sign-up">
-                    <i className="bi bi-person-add" style={{ fontSize: "1.5rem" }} title="sign-up"></i>
+                    <i
+                      className="bi bi-person-add"
+                      style={{ fontSize: "1.5rem" }}
+                      title="sign-up"
+                    ></i>
                   </Link>
                 </li>
               </>

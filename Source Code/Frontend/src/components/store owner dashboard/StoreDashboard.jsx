@@ -24,7 +24,7 @@ const MainDashboard = () => {
           height: "100vh",
           overflowY: "auto",
           overflowX: "hidden",
-          background: "linear-gradient(to bottom, #4a4a4a, #2b2b2b)",
+          background: "linear-gradient(to bottom, #E9ECEF, #E9ECEF)",
           transition: "width 0.3s ease-in-out",
           position: "fixed",
           zIndex: 1000,
@@ -36,9 +36,9 @@ const MainDashboard = () => {
             sidebarOpen ? "justify-content-between" : "justify-content-center"
           } align-items-center mb-4`}
         >
-          {sidebarOpen && <h4 className="m-0">Dashboard</h4>}
+          {sidebarOpen && <h4 className="m-0" style={{fontFamily:"cursive", fontSize:"20px"}}>Store Dashboard</h4>}
           <button
-            className="btn btn-link text-white p-0"
+            className="btn btn-link text-dark p-0"
             onClick={toggleSidebar}
             style={{ fontSize: "1.5rem" }}
           >
@@ -54,7 +54,7 @@ const MainDashboard = () => {
               className={`btn ${
                 activeComponent === "products"
                   ? "btn-primary"
-                  : "btn-outline-light"
+                  : "btn-outline-dark"
               } w-100 ${sidebarOpen ? "text-start" : "justify-content-center"}`}
               onClick={() => setActiveComponent("products")}
               style={{ whiteSpace: "nowrap", overflow: "hidden" }}
@@ -77,7 +77,7 @@ const MainDashboard = () => {
               className={`btn ${
                 activeComponent === "categories"
                   ? "btn-primary"
-                  : "btn-outline-light"
+                  : "btn-outline-dark"
               } w-100 ${sidebarOpen ? "text-start" : "justify-content-center"}`}
               onClick={() => setActiveComponent("categories")}
               style={{ whiteSpace: "nowrap", overflow: "hidden" }}

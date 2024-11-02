@@ -26,6 +26,7 @@ const ProductManagement = () => {
   });
   const [editingProduct, setEditingProduct] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [showForm, setShowForm] = useState(false);
 
   // When resetting filters
   const resetFilters = () => {
@@ -171,6 +172,7 @@ const ProductManagement = () => {
         quantity: "",
       });
       setCategory("");
+      handleCloseForm();
     } catch (error) {
       console.error(
         "Error adding product:",
@@ -221,6 +223,7 @@ const ProductManagement = () => {
       setIsEditing(false);
       setEditingProduct(null);
       setCategory("");
+      handleCloseForm();
     } catch (error) {
       console.error("Error editing product:", error);
       if (error.response) {
@@ -253,6 +256,7 @@ const ProductManagement = () => {
     setEditingProduct({ ...product });
     setCategory(product.category.toString()); // Convert to string if it's a number
     setIsEditing(true);
+    setShowForm(true);
   };
 
   // Delete a product
@@ -353,192 +357,234 @@ const ProductManagement = () => {
     return category ? category.name : "N/A";
   };
 
+  const handleShowForm = () => setShowForm(true);
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setIsEditing(false);
+    setNewProduct({
+      name: "",
+      price: "",
+      old_price: "",
+      description: "",
+      available: true,
+      featured: false,
+      image: null,
+      quantity: "",
+    });
+    setCategory("");
+  };
+
   return (
     <div className="container-fluid mt-3 mt-md-5">
-      <h1 className="mb-4">Product Management</h1>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1>Product Management</h1>
+        <button className="btn btn-primary" onClick={handleShowForm}>
+          Add New Product
+        </button>
+      </div>
 
-      {/* Add/Edit Product Form */}
-      <div className="row mb-5">
-        <div className="col-12 col-md-6">
-          <h3 className="mb-4">
-            {isEditing ? "Edit Product" : "Add New Product"}
-          </h3>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              addProduct(e);
-            }}
-          >
-            <div className="form-group mb-3">
-              <input
-                type="text"
-                className="form-control"
-                name="name"
-                placeholder="Product Name"
-                value={isEditing ? editingProduct.name : newProduct.name}
-                onChange={isEditing ? handleEditChange : handleInputChange}
-                required
-              />
+      <div
+        className={`modal fade ${showForm ? "show" : ""}`}
+        style={{ display: showForm ? "block" : "none" }}
+        tabIndex="-1"
+      >
+        <div className="modal-dialog modal-lg">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">
+                {isEditing ? "Edit Product" : "Add New Product"}
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={handleCloseForm}
+              ></button>
             </div>
-            <div className="form-group mb-3">
-              <input
-                type="number"
-                className="form-control"
-                name="price"
-                placeholder="Price"
-                value={isEditing ? editingProduct.price : newProduct.price}
-                onChange={isEditing ? handleEditChange : handleInputChange}
-                min={0}
-                required
-              />
-            </div>
-            <div className="form-group mb-3">
-              <input
-                type="number"
-                className="form-control"
-                name="old_price"
-                placeholder="Old Price (optional)"
-                value={
-                  isEditing ? editingProduct.old_price : newProduct.old_price
-                }
-                onChange={isEditing ? handleEditChange : handleInputChange}
-                min={0}
-              />
-            </div>
-            <div className="form-group mb-3">
-              <textarea
-                className="form-control"
-                name="description"
-                placeholder="Description"
-                value={
-                  isEditing
-                    ? editingProduct.description
-                    : newProduct.description
-                }
-                onChange={isEditing ? handleEditChange : handleInputChange}
-                required
-              />
-            </div>
-            <div className="form-group mb-3">
-              <select
-                className="form-select"
-                value={category}
-                onChange={(e) => {
-                  if (e.target.value !== "") {
-                    setCategory(e.target.value);
+            <div className="modal-body">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (isEditing) {
+                    editProduct(e);
+                  } else {
+                    addProduct(e);
                   }
+                  handleCloseForm();
                 }}
-                required
               >
-                <option value="">Select Category</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group mb-3">
-              <input
-                type="number"
-                className="form-control"
-                name="quantity"
-                placeholder="Quantity"
-                value={
-                  isEditing ? editingProduct.quantity : newProduct.quantity
-                }
-                onChange={isEditing ? handleEditChange : handleInputChange}
-                min={0}
-                required
-              />
-            </div>
-            <div className="form-check mb-3">
-              <input
-                type="checkbox"
-                className="form-check-input"
-                id="available"
-                name="available"
-                defaultChecked={
-                  isEditing ? editingProduct.available : newProduct.available
-                }
-                onChange={isEditing ? handleEditChange : handleInputChange}
-              />
-              <label className="form-check-label" htmlFor="available">
-                Available
-              </label>
-            </div>
-            <div className="form-check mb-3">
-              <input
-                type="checkbox"
-                className="form-check-input"
-                id="featured"
-                name="featured"
-                checked={
-                  isEditing ? editingProduct.featured : newProduct.featured
-                }
-                onChange={isEditing ? handleEditChange : handleInputChange}
-              />
-              <label className="form-check-label" htmlFor="featured">
-                Featured
-              </label>
-            </div>
-            <div className="form-group mb-3">
-              <input
-                type="file"
-                className="form-control"
-                name="image"
-                onChange={isEditing ? handleEditChange : handleInputChange}
-                accept="image/*"
-              />
-            </div>
+                <div className="form-group mb-3">
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="name"
+                    placeholder="Product Name"
+                    value={isEditing ? editingProduct.name : newProduct.name}
+                    onChange={isEditing ? handleEditChange : handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="form-group mb-3">
+                  <input
+                    type="number"
+                    className="form-control"
+                    name="price"
+                    placeholder="Price"
+                    value={isEditing ? editingProduct.price : newProduct.price}
+                    onChange={isEditing ? handleEditChange : handleInputChange}
+                    min={0}
+                    required
+                  />
+                </div>
+                <div className="form-group mb-3">
+                  <input
+                    type="number"
+                    className="form-control"
+                    name="old_price"
+                    placeholder="Old Price (optional)"
+                    value={
+                      isEditing
+                        ? editingProduct.old_price
+                        : newProduct.old_price
+                    }
+                    onChange={isEditing ? handleEditChange : handleInputChange}
+                    min={0}
+                  />
+                </div>
+                <div className="form-group mb-3">
+                  <textarea
+                    className="form-control"
+                    name="description"
+                    placeholder="Description"
+                    value={
+                      isEditing
+                        ? editingProduct.description
+                        : newProduct.description
+                    }
+                    onChange={isEditing ? handleEditChange : handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="form-group mb-3">
+                  <select
+                    className="form-select"
+                    value={category}
+                    onChange={(e) => {
+                      if (e.target.value !== "") {
+                        setCategory(e.target.value);
+                      }
+                    }}
+                    required
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group mb-3">
+                  <input
+                    type="number"
+                    className="form-control"
+                    name="quantity"
+                    placeholder="Quantity"
+                    value={
+                      isEditing ? editingProduct.quantity : newProduct.quantity
+                    }
+                    onChange={isEditing ? handleEditChange : handleInputChange}
+                    min={0}
+                    required
+                  />
+                </div>
+                <div className="form-check mb-3">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="available"
+                    name="available"
+                    defaultChecked={
+                      isEditing
+                        ? editingProduct.available
+                        : newProduct.available
+                    }
+                    onChange={isEditing ? handleEditChange : handleInputChange}
+                  />
+                  <label className="form-check-label" htmlFor="available">
+                    Available
+                  </label>
+                </div>
+                <div className="form-check mb-3">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="featured"
+                    name="featured"
+                    checked={
+                      isEditing ? editingProduct.featured : newProduct.featured
+                    }
+                    onChange={isEditing ? handleEditChange : handleInputChange}
+                  />
+                  <label className="form-check-label" htmlFor="featured">
+                    Featured
+                  </label>
+                </div>
+                <div className="form-group mb-3">
+                  <input
+                    type="file"
+                    className="form-control"
+                    name="image"
+                    onChange={isEditing ? handleEditChange : handleInputChange}
+                    accept="image/*"
+                  />
+                </div>
 
-            {isEditing && editingProduct.image && (
-              <div className="mb-3">
-                <img
-                  src={
-                    typeof editingProduct.image === "string"
-                      ? editingProduct.image
-                      : URL.createObjectURL(editingProduct.image)
-                  }
-                  alt="Product preview"
-                  style={{ maxWidth: "200px", maxHeight: "200px" }}
-                />
-              </div>
-            )}
-            {!isEditing && newProduct.image && (
-              <div className="mb-3">
-                <img
-                  src={URL.createObjectURL(newProduct.image)}
-                  alt="Product preview"
-                  style={{ maxWidth: "200px", maxHeight: "200px" }}
-                />
-              </div>
-            )}
-            {isEditing ? (
-              <div>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={editProduct}
-                >
-                  Update Product
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary ml-2"
-                  onClick={cancelEdit}
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <button type="submit" className="btn btn-success">
-                Add Product
-              </button>
-            )}
-          </form>
+                {isEditing && editingProduct.image && (
+                  <div className="mb-3">
+                    <img
+                      src={
+                        typeof editingProduct.image === "string"
+                          ? editingProduct.image
+                          : URL.createObjectURL(editingProduct.image)
+                      }
+                      alt="Product preview"
+                      style={{ maxWidth: "200px", maxHeight: "200px" }}
+                    />
+                  </div>
+                )}
+                {!isEditing && newProduct.image && (
+                  <div className="mb-3">
+                    <img
+                      src={URL.createObjectURL(newProduct.image)}
+                      alt="Product preview"
+                      style={{ maxWidth: "200px", maxHeight: "200px" }}
+                    />
+                  </div>
+                )}
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={handleCloseForm}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    {isEditing ? "Update Product" : "Add Product"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
+
+      {showForm && (
+        <div
+          className="modal-backdrop fade show"
+          onClick={handleCloseForm}
+        ></div>
+      )}
 
       {/* Search and Filter Products */}
       <div className="row mb-4 d-flex justify-content-between">
@@ -785,5 +831,23 @@ const ProductManagement = () => {
     </div>
   );
 };
+
+const styles = `
+  .modal-open {
+    overflow: hidden;
+  }
+  
+  .modal {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .modal.show {
+    display: block;
+  }
+`;
+
+const styleSheet = document.createElement("style");
+styleSheet.innerText = styles;
+document.head.appendChild(styleSheet);
 
 export default ProductManagement;

@@ -5,13 +5,18 @@ import { UserContext } from "./UserContext";
 export const ShoppingListContext = createContext();
 
 export const ShoppingListProvider = ({ children }) => {
-  const [shoppingList, setShoppingList] = useState({ 
+  const [shoppingList, setShoppingList] = useState({
     id: null,
     name: "",
     items: [],
     total_cost: 0
   });
+  const [itemCount, setItemCount] = useState(0);
   const { user } = useContext(UserContext);
+
+  useEffect(() => {
+    setItemCount(shoppingList.items?.length || 0);
+  }, [shoppingList]);
 
   const fetchShoppingList = async () => {
     if (!user) return;
@@ -163,7 +168,8 @@ export const ShoppingListProvider = ({ children }) => {
         shoppingList, 
         setShoppingList, 
         fetchShoppingList, 
-        addToList 
+        addToList, 
+        itemCount 
       }}
     >
       {children}
