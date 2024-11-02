@@ -267,7 +267,7 @@ function ProductList() {
                                   Featured
                                 </span>
                               )}
-                              {!product.available && (
+                              {product.available === false && (
                                 <span className="badge bg-danger">
                                   Out of Stock
                                 </span>
