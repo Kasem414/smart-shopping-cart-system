@@ -26,11 +26,12 @@ function Login() {
       localStorage.setItem("role", role); // Store role in localStorage
 
       // Redirect based on role
-      if (role === "1") {
+      if (role === "system_owner") {
         window.location.href = 'http://127.0.0.1:8000//admin';
       }
       else if (role === "store_owner") {
         navigate("/store-dashboard");
+        window.location.reload();
       }
       else if (role === "customer") {
         navigate("/");

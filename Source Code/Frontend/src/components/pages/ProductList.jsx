@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useMemo } from "react";
 import { MagnifyingGlass } from "react-loader-spinner";
 import { Link } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
@@ -6,6 +6,119 @@ import { ShoppingListContext } from "../contexts/ShoppingListContext";
 // import '@fortawesome/fontawesome-free/css/all.min.css';
 
 import ScrollToTop from "../layout/ScrollToTop";
+import GridView from '../product-views/GridView';
+import ListView from '../product-views/ListView';
+import ViewContext from '../product-views/ViewContext';
+
+import styled from 'styled-components';
+
+// Add these styled components at the top level
+const SortingContainer = styled.div`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 200px;
+`;
+
+const SortSelect = styled.select`
+  appearance: none;
+  width: 100%;
+  padding: 0.5rem 2.25rem 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #2c3e50;
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+
+  &:hover {
+    border-color: #cbd5e1;
+  }
+
+  &:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+  }
+
+  &:disabled {
+    background-color: #f8fafc;
+    cursor: not-allowed;
+  }
+`;
+
+const ClearButton = styled.button`
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    color: #64748b;
+  }
+
+  &:focus {
+    outline: none;
+    color: #475569;
+  }
+
+  i {
+    font-size: 14px;
+  }
+`;
+
+const LoadingSpinner = styled.div`
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+`;
+
+const ToolbarContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 1rem;
+`;
+
+const ViewToggle = styled.div`
+  display: flex;
+  gap: 0.5rem;
+
+  button {
+    padding: 0.5rem;
+    border: 1px solid #e2e8f0;
+    background: ${props => props.active ? '#f1f5f9' : '#fff'};
+    color: ${props => props.active ? '#0f172a' : '#64748b'};
+    border-radius: 0.375rem;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    i {
+      font-size: 1rem;
+    }
+  }
+`;
 
 function ProductList() {
   const { user } = useContext(UserContext);
@@ -17,6 +130,31 @@ function ProductList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [viewContext] = useState(new ViewContext(new GridView()));
+  const [viewMode, setViewMode] = useState('grid');
+
+  // Add new state for sorting
+  const [sortOption, setSortOption] = useState('default');
+  const [isSorting, setIsSorting] = useState(false);
+
+  // Add sorting function
+  const getSortedProducts = (products) => {
+    switch (sortOption) {
+      case 'price-low-high':
+        return [...products].sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+      case 'price-high-low':
+        return [...products].sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+      case 'name-asc':
+        return [...products].sort((a, b) => a.name.localeCompare(b.name));
+      case 'name-desc':
+        return [...products].sort((a, b) => b.name.localeCompare(a.name));
+      case 'featured':
+        return [...products].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+      case 'default':
+      default:
+        return products; // Return original order
+    }
+  };
 
   // Fetch both categories and products
   useEffect(() => {
@@ -29,9 +167,6 @@ function ProductList() {
 
         const categoriesData = await categoriesRes.json();
         const productsData = await productsRes.json();
-
-        console.log(categoriesData);
-        console.log(productsData);
 
         setCategories(categoriesData);
         setProducts(productsData);
@@ -71,16 +206,17 @@ function ProductList() {
     setSearchQuery(query);
     
     if (!query.trim()) {
-      setSearchResults(products); // Show all products when search is empty
+      setSearchResults(products);
       setIsSearching(false);
       return;
     }
 
     try {
+      setError(null)
       setIsSearching(true);
       const token = localStorage.getItem("access_token");
       const response = await fetch(
-        `http://127.0.0.1:8000/search/?query=${encodeURIComponent(query)}`, // Updated endpoint
+        `http://127.0.0.1:8000/search/?query=${encodeURIComponent(query)}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -94,12 +230,12 @@ function ProductList() {
       }
 
       const data = await response.json();
-      setSearchResults(Array.isArray(data) ? data : []);
-      setCurrentPage(1); // Reset to first page when searching
+      setSearchResults(data);
+      setCurrentPage(1);
     } catch (error) {
       console.error('Search failed:', error);
       setError('Failed to perform search');
-      setSearchResults([]); // Clear results on error
+      setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
@@ -123,11 +259,34 @@ function ProductList() {
   );
 
   const displayProducts = searchQuery ? searchResults : products;
-  const currentProducts = displayProducts.slice(
+  const sortedProductsMemo = useMemo(() => {
+    return getSortedProducts(displayProducts);
+  }, [displayProducts, sortOption]);
+  const currentProducts = sortedProductsMemo.slice(
     indexOfFirstProduct,
     indexOfLastProduct
   );
+  console.log(displayProducts);
+  
   const totalPages = Math.ceil(displayProducts.length / productsPerPage);
+
+  const handleViewChange = (mode) => {
+    setViewMode(mode);
+    viewContext.setStrategy(mode === 'grid' ? new GridView() : new ListView());
+  };
+
+  // Add sort handler
+  const handleSort = async (e) => {
+    const newSortOption = e.target.value;
+    setIsSorting(true);
+    setSortOption(newSortOption);
+    setCurrentPage(1);
+    
+    // Use setTimeout to allow the UI to update before heavy sorting
+    setTimeout(() => {
+      setIsSorting(false);
+    }, 100);
+  };
 
   return (
     <div>
@@ -204,7 +363,7 @@ function ProductList() {
               </div>
 
               {/* Product list */}
-              <div className="col-lg-9 col-md-8">
+              <div className="col-lg-9 col-md-8 mt-2">
                 <div className="d-md-flex justify-content-between align-items-center mt-3">
                   {/* Products Found */}
                   <div>
@@ -218,162 +377,97 @@ function ProductList() {
                     </p>
                   </div>
 
-                  {/* sort & list style & num of prods */}
-                  <div className="d-flex justify-content-between align-items-center">
-                    {/* Number of Proucts per page */}
-                    <div className="me-2">
+                  {/* Only show sorting options if there are products to display */}
+                  {currentProducts.length > 0 && (
+                    <ToolbarContainer>
+                      <ViewToggle>
+                        <button
+                          className={viewMode === 'grid' ? 'active' : ''}
+                          onClick={() => handleViewChange('grid')}
+                        >
+                          <i className="bi bi-grid"></i>
+                        </button>
+                        <button
+                          className={viewMode === 'list' ? 'active' : ''}
+                          onClick={() => handleViewChange('list')}
+                        >
+                          <i className="bi bi-list"></i>
+                        </button>
+                      </ViewToggle>
+
+
                       <select
                         className="form-select"
+                        style={{ width: 'auto', minWidth: '120px' }}
                         value={productsPerPage}
                         onChange={(e) => {
                           setProductsPerPage(Number(e.target.value));
                           setCurrentPage(1);
                         }}
                       >
-                        <option value={5}>Show: 5</option>
-                        <option value={20}>Show: 20</option>
-                        <option value={30}>Show: 30</option>
+                        <option value={5}>Show 5</option>
+                        <option value={20}>Show 20</option>
+                        <option value={30}>Show 30</option>
                       </select>
-                    </div>
 
-                    {/* Sort by */}
-                    <div>
-                      <select
-                        className="form-select"
-                        aria-label="Default select example"
-                      >
-                        <option selected>Sort by: Featured</option>
-                        <option value="Low to High">Price: Low to High</option>
-                        <option value="High to Low"> Price: High to Low</option>
-                        <option value="Release Date"> Release Date</option>
-                      </select>
-                    </div>
+                      <SortingContainer>
+                        <SortSelect
+                          value={sortOption}
+                          onChange={handleSort}
+                          disabled={isSorting}
+                        >
+                          <option value="default">Sort Products</option>
+                          <option value="featured">Featured First</option>
+                          <option value="price-low-high">Price: Lowest</option>
+                          <option value="price-high-low">Price: Highest</option>
+                          <option value="name-asc">Name: A to Z</option>
+                          <option value="name-desc">Name: Z to A</option>
+                        </SortSelect>
+                        
+                        {isSorting ? (
+                          <LoadingSpinner>
+                            <div className="spinner-border spinner-border-sm text-primary" 
+                                 role="status" 
+                                 style={{ width: '16px', height: '16px' }}>
+                              <span className="visually-hidden">Sorting...</span>
+                            </div>
+                          </LoadingSpinner>
+                        ) : (
+                          sortOption !== 'default' && (
+                            <ClearButton
+                              onClick={() => {
+                                setSortOption('default');
+                                setCurrentPage(1);
+                              }}
+                              title="Clear sorting"
+                              type="button"
+                            >
+                              <i className="bi bi-x"></i>
+                            </ClearButton>
+                          )
+                        )}
+                      </SortingContainer>
+                    </ToolbarContainer>
+                  )}
+                </div>
+
+                {/* Show message when no results found */}
+                {searchQuery && searchResults.length === 0 && !isSearching && (
+                  <div className="alert alert-info mt-3">
+                    No products found matching "{searchQuery}"
                   </div>
-                </div>
+                )}
 
-                {/* row */}
-                <div className="row g-4 row-cols-xl-4 row-cols-lg-3 row-cols-2 row-cols-md-2 mt-2">
-                  {currentProducts.map((product) => (
-                    <div className="col" key={product.id}>
-                      {" "}
-                      {/* Handle both id formats */}
-                      <div className="card card-product">
-                        <div className="card-body">
-                          <div className="text-center position-relative">
-                            {/* Only show badge if there's a condition to show */}
-                            <div className="position-absolute top-0 start-0">
-                              {product.featured && (
-                                <span className="badge bg-primary">
-                                  Featured
-                                </span>
-                              )}
-                              {product.available === false && (
-                                <span className="badge bg-danger">
-                                  Out of Stock
-                                </span>
-                              )}
-                              {product.old_price && (
-                                <span className="badge bg-secondary ms-2">
-                                  {Math.round(
-                                    ((product.old_price - product.price) /
-                                      product.old_price) *
-                                      100
-                                  )}
-                                  % Off
-                                </span>
-                              )}
-                            </div>
-
-                            <Link to="/product-details">
-                              <img
-                                src={product.image}
-                                alt={product.name || ""}
-                                className="mb-3 img-fluid"
-                              />
-                            </Link>
-                          </div>
-
-                          <div className="text-small mb-1">
-                            <Link
-                              to="#!"
-                              className="text-decoration-none text-muted"
-                            >
-                              <small>
-                                {Array.isArray(categories) && categories.find(
-                                  (cat) => cat.id === product.category
-                                )?.name || "Category"}
-                              </small>
-                            </Link>
-                          </div>
-
-                          <h2 className="fs-6">
-                            <Link
-                              to={`/product/${product.id || product._id}`}
-                              className="text-inherit text-decoration-none"
-                            >
-                              {product.name || "Product Name"}
-                            </Link>
-                          </h2>
-
-                          <div className="d-flex justify-content-between align-items-center mt-3">
-                            <div>
-                              <span className="text-dark">
-                                ${product.price || 0}
-                              </span>{" "}
-                              {product.old_price && (
-                                <span className="text-decoration-line-through text-muted ms-2">
-                                  ${product.old_price}
-                                </span>
-                              )}
-                            </div>
-                            <div>
-                              <button
-                                className="btn btn-primary btn-sm"
-                                onClick={async () => {
-                                  if (!user) {
-                                    alert(
-                                      "Please log in to add products to your shopping list."
-                                    );
-                                    return;
-                                  }
-                                  try {
-                                    const result = await addToList(product.id);
-                                    alert(result.message);
-                                  } catch (err) {
-                                    console.error(
-                                      "Failed to add product:",
-                                      err
-                                    );
-                                    setError(
-                                      "Failed to add product to shopping list"
-                                    );
-                                  }
-                                }}
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width={16}
-                                  height={16}
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth={2}
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  className="feather feather-plus"
-                                >
-                                  <line x1={12} y1={5} x2={12} y2={19} />
-                                  <line x1={5} y1={12} x2={19} y2={12} />
-                                </svg>{" "}
-                                Add
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                {/* Render current view */}
+                {currentProducts.length > 0 && (
+                  viewContext.executeStrategy(
+                    currentProducts,
+                    categories,
+                    user,
+                    addToList,
+                    setError
+                  )
+                )}
 
                 {/* Pagination */}
                 {totalPages > 1 && (
