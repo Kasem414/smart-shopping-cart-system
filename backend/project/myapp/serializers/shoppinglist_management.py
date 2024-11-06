@@ -42,36 +42,3 @@ class ShoppingListSerializer(serializers.ModelSerializer):
             picked_up = item_data.get('picked_up',False)
             ShoppingListItem.objects.update_or_create(shopping_list=instance,product_id=product_id,defaults={'quantity':quantity,'picked_up':picked_up})
         return instance
-    
-    ###########
-# class ShoppingListItemSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = ShoppingListItem
-#         fields = ['id', 'shopping_list', 'product', 'quantity', 'picked_up']
-#         read_only_fields = ['shopping_list']
-
-#     def validate_quantity(self, value):
-#         if value < 1:
-#             raise serializers.ValidationError("Quantity must be at least 1.")
-#         return value
-
-#     def update(self, instance, validated_data):
-#         if 'quantity' in validated_data:
-#             instance.quantity = validated_data['quantity']
-#         if 'picked_up' in validated_data:
-#             instance.picked_up = validated_data['picked_up']
-#         instance.save()
-#         return instance
-
-# class ShoppingListSerializer(serializers.ModelSerializer):
-#     customer = serializers.ReadOnlyField(source='customer.id')
-#     items = ShoppingListItemSerializer(many=True, read_only=True)
-
-#     class Meta:
-#         model = ShoppingList
-#         fields = ['id', 'name', 'customer', 'items', 'total_cost']
-#         read_only_fields = ['total_cost']
-
-#     def create(self, validated_data):
-#         validated_data['customer'] = self.context['request'].user
-#         return super().create(validated_data)

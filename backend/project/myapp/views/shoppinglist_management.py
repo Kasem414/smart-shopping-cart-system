@@ -15,7 +15,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ProductItemSerializer
 
 class ShoppingListViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsCustomer]
+    permission_classes = [AllowAny]
     serializer_class = ShoppingListSerializer
     def get_queryset(self):
         return ShoppingList.objects.filter(customer=self.request.user)
@@ -91,110 +91,3 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
                              ,status=status.HTTP_200_OK)
         except ShoppingList.DoesNotExist:
             return Response({"error": "Shopping list not found."},status=status.HTTP_404_NOT_FOUND)
-    
-# # View to list all shopping lists or create a new one
-# class ShoppingListListCreateView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         shopping_lists = ShoppingList.objects.filter(customer=request.user)
-#         serializer = ShoppingListSerializer(shopping_lists, many=True)
-#         return Response(serializer.data)
-
-#     def post(self, request):
-#         serializer = ShoppingListSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save(customer=request.user)
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# # View to retrieve, update, or delete a specific shopping list
-# class ShoppingListDetailView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get_object(self, list_id, user):
-#         try:
-#             return ShoppingList.objects.get(id=list_id, customer=user)
-#         except ShoppingList.DoesNotExist:
-#             return None
-
-#     def get(self, request, list_id):
-#         shopping_list = self.get_object(list_id, request.user)
-#         if not shopping_list:
-#             return Response(status=status.HTTP_404_NOT_FOUND)
-#         serializer = ShoppingListSerializer(shopping_list)
-#         return Response(serializer.data)
-
-#     def delete(self, request, list_id):
-#         shopping_list = self.get_object(list_id, request.user)
-#         if not shopping_list:
-#             return Response(status=status.HTTP_404_NOT_FOUND)
-#         shopping_list.delete()
-#         return Response(status=status.HTTP_204_NO_CONTENT)
-
-# # View to add an item to a shopping list
-# class AddItemToShoppingListView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request, list_id):
-#         try:
-#             shopping_list = ShoppingList.objects.get(id=list_id, customer=request.user)
-#         except ShoppingList.DoesNotExist:
-#             return Response(status=status.HTTP_404_NOT_FOUND)
-
-#         serializer = ShoppingListItemSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save(shopping_list=shopping_list)
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# # View to update an item's quantity in the shopping list
-# class UpdateItemQuantityView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def patch(self, request, list_id, product_id):
-#         try:
-#             shopping_list_item = ShoppingListItem.objects.get(
-#                 shopping_list_id=list_id, product_id=product_id, shopping_list__customer=request.user
-#             )
-#         except ShoppingListItem.DoesNotExist:
-#             return Response(status=status.HTTP_404_NOT_FOUND)
-
-#         serializer = ShoppingListItemSerializer(shopping_list_item, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# # View to remove an item from the shopping list
-# class RemoveItemFromShoppingListView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def delete(self, request, list_id, product_id):
-#         try:
-#             shopping_list_item = ShoppingListItem.objects.get(
-#                 shopping_list_id=list_id, product_id=product_id, shopping_list__customer=request.user
-#             )
-#         except ShoppingListItem.DoesNotExist:
-#             return Response(status=status.HTTP_404_NOT_FOUND)
-
-#         shopping_list_item.delete()
-#         return Response(status=status.HTTP_204_NO_CONTENT)
-
-# # View to mark an item as picked up
-# class MarkItemPickedView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def patch(self, request, list_id, product_id):
-#         try:
-#             shopping_list_item = ShoppingListItem.objects.get(
-#                 shopping_list_id=list_id, product_id=product_id, shopping_list__customer=request.user
-#             )
-#         except ShoppingListItem.DoesNotExist:
-#             return Response(status=status.HTTP_404_NOT_FOUND)
-
-#         serializer = ShoppingListItemSerializer(shopping_list_item, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
