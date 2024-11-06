@@ -52,15 +52,33 @@ class DeactivateUserView(APIView):
             return Response({"deatail":"Not authenticated."},status=status.HTTP_401_UNAUTHORIZED)
         if not admin_user.is_superuser:
             return Response({"detail":"You don't hace permission to perform this action."},status=status.HTTP_403_FORBIDDEN)
-        store_owner_id = self.kwargs['id']
+        user_id = self.kwargs['id']
+        user = MyUser.objects.get(id=user_id)
         try:
-           store_owner = MyUser.objects.get(id=store_owner_id,account_type='store_owner')
-           store_owner.is_active = False
-           store_owner.save()
-           return Response({"message":'User has been deactivated'},status=status.HTTP_200_OK)
+           if user.account_type == 'store_owner' or user.account_type == 'customer':
+            user.is_active = False
+            user.save()
+            return Response({"message":'User has been deactivated'},status=status.HTTP_200_OK)
         except MyUser.DoesNotExist:
             return Response({"error":"User not found"},status=status.HTTP_404_NOT_FOUND)
 
+class ActivateUserView(APIView):
+    permission_classes = [IsAdminUser]
+    def post(self,request,*args, **kwargs):
+        admin_user = request.user
+        if not admin_user.is_authenticated:
+            return Response({"deatail":"Not authenticated."},status=status.HTTP_401_UNAUTHORIZED)
+        if not admin_user.is_superuser:
+            return Response({"detail":"You don't hace permission to perform this action."},status=status.HTTP_403_FORBIDDEN)
+        user_id = self.kwargs['id']
+        user = MyUser.objects.get(id=user_id)
+        try:
+           if user.account_type == 'store_owner' or user.account_type == 'customer':
+            user.is_active = True
+            user.save()
+            return Response({"message":'User has been deactivated'},status=status.HTTP_200_OK)
+        except MyUser.DoesNotExist:
+            return Response({"error":"User not found"},status=status.HTTP_404_NOT_FOUND)
 
 class ListCustomerView(generics.ListAPIView):
     queryset = MyUser.objects.filter(account_type="customer")
