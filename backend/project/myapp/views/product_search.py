@@ -5,8 +5,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from ..models import Product
 from ..serializers.product_search import ProductSearchSerializer
-
+from rest_framework.permissions import AllowAny
 class ProductSearchView(APIView):
+    permission_classes = [AllowAny]
     def get(self,request,*args, **kwargs):
         query = request.query_params.get('query','').strip()
         if not query:
@@ -18,3 +19,4 @@ class ProductSearchView(APIView):
             return Response({"message": "No products match the search criteria."},status=status.HTTP_404_NOT_FOUND)
         serializer = ProductSearchSerializer(results,many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
+    
