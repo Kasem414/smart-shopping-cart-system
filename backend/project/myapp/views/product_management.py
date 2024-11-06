@@ -10,7 +10,7 @@ from rest_framework.serializers import ValidationError
 repo = ProductRepository()
 class ProductListView(generics.ListAPIView):
     queryset = ProductRepository.get_all()
-    permission_classes = [IsStoreOwner]
+    permission_classes = [AllowAny]
     serializer_class = ProductSerializer
 
 
