@@ -1,7 +1,7 @@
 from ..models import Product, Category
 from django.core.exceptions import ObjectDoesNotExist
-
-class ProductRepository:
+from .IProduct import IProduct
+class ProductRepository(IProduct):
     @staticmethod
     def get_all(): 
         return Product.objects.all()
@@ -12,7 +12,7 @@ class ProductRepository:
         except ObjectDoesNotExist:
             return None
     @staticmethod
-    def get_product_by_name(self,name):
+    def get_product_by_name(name):
         try:
             return Product.objects.get(name=name)
         except ObjectDoesNotExist:
@@ -33,7 +33,7 @@ class ProductRepository:
             return category.products.all()
         except ObjectDoesNotExist:
             return None
-    @staticmethod
+    # @staticmethod
     # get product by store using id
     # def get_product_by_store(store_id):
     #     try:
@@ -54,5 +54,5 @@ class ProductRepository:
         else:
             raise TypeError("Expected a product instance, got something else.")
     @staticmethod
-    def delete(self,product):
+    def delete(product):
         product.delete()

@@ -1,8 +1,8 @@
 from django.forms import ValidationError
 from ..models import  Category
 from django.core.exceptions import ObjectDoesNotExist
-
-class CategoryRepository:
+from .ICategory import ICategory
+class CategoryRepository(ICategory):
     @staticmethod
     def get_all():
         try:
@@ -22,7 +22,7 @@ class CategoryRepository:
         except ObjectDoesNotExist:
             return None
     @staticmethod
-    def get_category_by_name(self,name):
+    def get_category_by_name(name):
         try:
             return Category.objects.get(name=name)
         except ObjectDoesNotExist:
