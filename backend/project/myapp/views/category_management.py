@@ -10,7 +10,7 @@ from rest_framework.serializers import ValidationError
 
 class CategoryListView(generics.ListAPIView):
     queryset = CategoryRepository.get_all()
-    permission_classes = [IsStoreOwner]
+    permission_classes = [AllowAny]
     serializer_class = CategorySerializer
 
 

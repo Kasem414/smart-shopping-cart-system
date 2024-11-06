@@ -9,8 +9,8 @@ from rest_framework.serializers import ValidationError
 
 repo = ProductRepository()
 class ProductListView(generics.ListAPIView):
-    queryset = repo.get_all()
-    permission_classes = [AllowAny]
+    queryset = ProductRepository.get_all()
+    permission_classes = [IsStoreOwner]
     serializer_class = ProductSerializer
 
 
@@ -18,8 +18,8 @@ class ProductCreateView(generics.CreateAPIView):
     permission_classes = [IsStoreOwner]
     serializer_class = ProductSerializer
     def post(self, request, *args, **kwargs):
-        product_data=request.data.copy()
-        product_data.pop('csrfmiddlewaretoken',None)
+        product_data=request.data
+        # product_data.pop('csrfmiddlewaretoken',None)
         serializer=self.serializer_class(data=product_data)
         if serializer.is_valid(raise_exception=True):
             category = serializer.validated_data['category']
@@ -30,9 +30,9 @@ class ProductCreateView(generics.CreateAPIView):
             old_price = serializer.validated_data['old_price']
             available = serializer.validated_data['available']
             featured = serializer.validated_data['featured']
-            image = request.FILES['image']
             if Product.objects.filter(name=name).exists():
                 raise ValidationError({'message':'Product already exists.'})
+            # if there no image I save data in dict
             product_data = {
                 'category' : category,
                 'name' : name,
@@ -42,28 +42,30 @@ class ProductCreateView(generics.CreateAPIView):
                 'old_price' : old_price,
                 'available' : available,
                 'featured' : featured,
-                'image' : image,
+                
             }
-            product = repo.create(data=product_data)
+            # To check if there an image in request 
+            if 'image' in request.FILES:
+                product_data['image'] = request.FILES['image']
+            product = ProductRepository.create(data=product_data)
             return Response(ProductSerializer(product).data,status=status.HTTP_201_CREATED)
         return Response({'message':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
     
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsStoreOwner]
-    queryset = repo.get_all()
+    queryset = ProductRepository.get_all()
     lookup_field = 'pk'
     serializer_class = ProductSerializer
-
     def put(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = ProductSerializer(instance,data=request.data,partial=True)
         if serializer.is_valid(raise_exception=True):
-            updated_product = repo.update(product=instance,data=serializer.validated_data)
+            updated_product = ProductRepository.update(product=instance,data=serializer.validated_data)
             return Response(ProductSerializer(updated_product).data,status=status.HTTP_200_OK)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 class ProductDetailBySlugView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsStoreOwner]
-    queryset = repo.get_all()
+    queryset = ProductRepository.get_all()
     lookup_field = 'slug'
     serializer_class = ProductSerializer 

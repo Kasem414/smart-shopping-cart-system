@@ -8,13 +8,12 @@ repo = ProductRepository()
 #         fields = ['image']
 
 class ProductSerializer(serializers.ModelSerializer):
-    image = serializers.ImageField(required=False)
+    old_price = serializers.DecimalField(max_digits=10,decimal_places=2,required=False,allow_null=True)
     class Meta:
         model = Product
         fields = ['id','category','name','description','price','old_price','quantity','available','featured','image']
         extra_kwargs = {
             'price' : {'required' : True},
-            'image' : {'required' : False}
         }
     # def to_representation(self, instance):
     #     try:
