@@ -122,9 +122,6 @@ class Product(models.Model):
 #     product = models.ForeignKey(Product,related_name='images',on_delete=models.CASCADE)
 #     image = models.ImageField(upload_to='media/%y/%m/%d',blank=True)
 
-# class Store(models.Model):
-#     name = models.CharField(max_length=200)
-#     logo = models.ImageField(upload_to='media/%y/%m/%d',blank=True)
 
 class ShoppingList(models.Model):
     customer = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="shopping_lists")
@@ -146,3 +143,13 @@ class ShoppingListItem(models.Model):
         return self.product.price * self.quantity
     def __str__(self):
         return f"{self.product.name} (x{self.quantity}) - {'Picked Up' if self.picked_up else 'Not Picked Up'}"
+
+
+class Store(models.Model):
+    name = models.CharField(max_length=200)
+    logo = models.ImageField(upload_to='media/%y/%m/%d',blank=True,null=True)
+    def get_image(self):
+        if self.image:
+            return 'http://127.0.0.1:8000' + self.logo.url
+    def __str__(self):
+        return self.name 
