@@ -2,7 +2,7 @@ from rest_framework import serializers
 from ..models import MyUser
 from rest_framework.serializers import ModelSerializer
 from django.contrib.auth import authenticate,get_user_model
-
+from ..validations import validate_password_complexity
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MyUser
@@ -39,7 +39,9 @@ class SignUpSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
-
+    def validate_password(self,value):
+        validate_password_complexity(value)
+        return value
 class LoginSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(required=True,write_only=True)

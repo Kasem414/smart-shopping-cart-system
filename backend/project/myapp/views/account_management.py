@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny,IsAuthenticated,IsAdminUser
 from ..serializers.account_management import SignUpSerializer,LoginSerializer,UserSerializer,StoreOwnerSeializer,CustomerSeializer
-from ..models import MyUser
+from ..models import MyUser,Store
 from rest_framework.decorators import api_view
 def get_token_for_user(user):
     refresh  = RefreshToken.for_user(user)
@@ -21,7 +21,12 @@ class SignUpView(APIView):
         serializer=self.serializer_class(data=data)
         if serializer.is_valid(raise_exception=True):
             user=serializer.save()
-            token= get_token_for_user(user)
+            token= get_token_for_user(user)   
+            if user.account_type == 'store_owner':
+                store = Store.objects.create(name="Default Store Name")
+                store.store_owner.add(user)
+                store.save()
+                token['store_id'] = store.id
             response={"message":"user was created successfully","data":serializer.data,'token' :token}
             return Response(data=response,status=status.HTTP_201_CREATED)
         return Response({'message':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
