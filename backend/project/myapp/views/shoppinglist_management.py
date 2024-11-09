@@ -7,12 +7,12 @@ from rest_framework.decorators import action
 from ..models import Product, ShoppingList, ShoppingListItem,MyUser
 from ..serializers.shoppinglist_management import ShoppingListSerializer,ShoppingListItemSerializer,ProductItemSerializer
 from ..repositories.product_repo import ProductRepository
-from rest_framework.views import APIView
-repo = ProductRepository()
+from django.shortcuts import get_object_or_404
+
 
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = repo.get_all()
+    queryset = ProductRepository.get_all()
     serializer_class = ProductItemSerializer
 
 class ShoppingListViewSet(viewsets.ModelViewSet):
@@ -41,12 +41,17 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
             for item_data in product_data:
                 product_id = item_data.get('product_id')
                 quantity = item_data.get('quantity',1)
+                product = get_object_or_404(Product,id=product_id)
+                if not product.available:
+                    return Response({"error": f"Product '{product.name}' is not available."},status=status.HTTP_400_BAD_REQUEST)
             # Add logic to add the product to the shopping list (e.g., create a shopping list item if using a related model)
                 shopping_list_item, created = ShoppingListItem.objects.update_or_create(shopping_list=shopping_list
                                                                             ,product_id=product_id,defaults={'quantity': quantity})
         else:
             product_id = product_data.get('product_id')
             quantity = product_data.get('quantity',1)
+            if not product.available:
+                    return Response({"error": f"Product '{product.name}' is not available."},status=status.HTTP_400_BAD_REQUEST)
             shopping_list_item, created = ShoppingListItem.objects.update_or_create(shopping_list=shopping_list
                                                                             ,product_id=product_id,defaults={'quantity': quantity})
         if created:
@@ -76,6 +81,9 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
             shopping_list_item = ShoppingListItem.objects.filter(shopping_list=shopping_list,product_id=product_id).first()
             if not shopping_list_item:
                 return Response({"error": "Product not found in shopping list."},status=status.HTTP_404_NOT_FOUND)
+            # product = get_object_or_404(Product,id=product_id)
+            # if quantity > product.quantity:
+            #     return Response({"error": f"Only {product.quantity} units available in stock."},status=status.HTTP_400_BAD_REQUEST)
             shopping_list_item.quantity = quantity
             shopping_list_item.save()
             return Response({"message": "Quantity updated successfully."},status=status.HTTP_200_OK)
