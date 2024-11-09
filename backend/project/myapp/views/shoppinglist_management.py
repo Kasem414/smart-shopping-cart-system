@@ -1,3 +1,4 @@
+from rest_framework.serializers import ValidationError
 from rest_framework import viewsets, status,generics
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny,IsAuthenticated
@@ -18,7 +19,10 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
     serializer_class = ShoppingListSerializer
     def get_queryset(self):
-        return ShoppingList.objects.filter(customer=self.request.user)
+        if self.request.user.account_type == "customer":
+            return ShoppingList.objects.filter(customer=self.request.user)
+        else:
+            raise ValidationError("Your account is not customer.")
     def perform_create(self, serializer):
         serializer.save(customer=self.request.user)
     @action(detail=True,methods=['POST'],url_path='add-to-list')
