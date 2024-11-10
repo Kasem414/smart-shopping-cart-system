@@ -71,13 +71,29 @@ class MyUser(AbstractBaseUser,PermissionsMixin):
     def has_module_perms(self, app_label):
         return self.is_superuser
 
+
+class Store(models.Model):
+    name = models.CharField(max_length=200)
+    logo = models.ImageField(upload_to='media/%y/%m/%d',blank=True,null=True)
+    store_owner = models.ManyToManyField(settings.AUTH_USER_MODEL,related_name="managed_stores",blank=True)
+    def get_image(self):
+        if self.logo:
+            return 'http://127.0.0.1:8000' + self.logo.url
+    def __str__(self):
+        return self.name 
+
 class Category(models.Model):
-    name = models.CharField(max_length=200,unique=True)
-    slug = models.SlugField(max_length=200,unique=True,blank=True)
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200,blank=True)
+    image = models.ImageField(upload_to='media/%y/%m/%d',null=True,blank=True)
+    store_id = models.ForeignKey(Store,related_name="categories",on_delete=models.CASCADE)
     class Meta:
         indexes = [
             models.Index(fields=['name']),
             ]
+        constraints = [
+            models.UniqueConstraint(fields=['name','store_id'],name='unique_category_per_store')
+        ]
         verbose_name = 'Category'
         verbose_name_plural = 'Categories'
 
@@ -87,12 +103,14 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
-
+    def get_image(self):
+        if self.image:
+            return 'http://127.0.0.1:8000' + self.image.url
 
 class Product(models.Model):
     category = models.ForeignKey(Category,related_name='products',on_delete=models.CASCADE)
-    name = models.CharField(max_length=200,unique=True)
-    slug = models.CharField(max_length=200,unique=True,blank=True)
+    name = models.CharField(max_length=200)
+    slug = models.CharField(max_length=200,blank=True)
     description = models.TextField(blank=True,null=True)
     price = models.DecimalField(max_digits=10,decimal_places=2)
     quantity = models.IntegerField(default=0)
@@ -102,13 +120,18 @@ class Product(models.Model):
     featured = models.BooleanField()
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    store_id = models.ForeignKey(Store,related_name="products",on_delete=models.CASCADE)
     class Meta:
         indexes = [
             models.Index(fields=['name']),
             models.Index(fields=['-created']),
             ]
+        constraints = [
+            models.UniqueConstraint(fields=['name','store_id'],name='unique_product_per_store')
+        ]
         verbose_name = "Product"
         verbose_name_plural = "Products"
+
     def save(self,*args, **kwargs):
             self.slug = slugify(self.name)
             super().save(*args, **kwargs)
@@ -144,12 +167,3 @@ class ShoppingListItem(models.Model):
     def __str__(self):
         return f"{self.product.name} (x{self.quantity}) - {'Picked Up' if self.picked_up else 'Not Picked Up'}"
 
-
-class Store(models.Model):
-    name = models.CharField(max_length=200)
-    logo = models.ImageField(upload_to='media/%y/%m/%d',blank=True,null=True)
-    def get_image(self):
-        if self.image:
-            return 'http://127.0.0.1:8000' + self.logo.url
-    def __str__(self):
-        return self.name 
