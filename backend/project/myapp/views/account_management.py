@@ -23,7 +23,7 @@ class SignUpView(APIView):
             user=serializer.save()
             token= get_token_for_user(user)   
             if user.account_type == 'store_owner':
-                store = Store.objects.create(name="Default Store Name")
+                store = Store.objects.create(name=f"{user.first_name}'s Store")
                 store.store_owner.add(user)
                 store.save()
                 token['store_id'] = store.id
