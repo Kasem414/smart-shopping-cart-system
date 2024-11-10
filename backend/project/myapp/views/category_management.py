@@ -9,12 +9,11 @@ from rest_framework.serializers import ValidationError
 from rest_framework.exceptions import PermissionDenied
 
 class CategoryListView(generics.ListAPIView):
-    queryset = CategoryRepository.get_all()
     permission_classes = [AllowAny]
     serializer_class = CategorySerializer
     def get_queryset(self):
         if self.request.user.is_anonymous or self.request.user.account_type == 'customer':
-            quereyset = CategoryRepository.get_category_by_store(store_id=4)
+            quereyset = CategoryRepository.get_category_by_store(store_id=1)
             return quereyset
         store = self.request.user.managed_stores.first()
         # Filter categories by the store to restrict access
@@ -56,7 +55,6 @@ class CategoryCreateView(generics.CreateAPIView):
     
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsStoreOwner]
-    queryset = CategoryRepository.get_all()
     lookup_field = 'pk'
     serializer_class = CategorySerializer
     def get_queryset(self):
