@@ -1,4 +1,4 @@
-from ..models import Product, Category
+from ..models import Product, Category, Store
 from django.core.exceptions import ObjectDoesNotExist
 from .IProduct import IProduct
 class ProductRepository(IProduct):
@@ -33,17 +33,25 @@ class ProductRepository(IProduct):
             return category.products.all()
         except ObjectDoesNotExist:
             return None
-    # @staticmethod
+    @staticmethod
     # get product by store using id
-    # def get_product_by_store(store_id):
-    #     try:
-    #         store = Store.objects.get(id=store_id)
-    #         return store.products.all()
-    #     except ObjectDoesNotExist:
-    #         return None
+    def get_product_by_store(store_id):
+        try:
+            store = Store.objects.get(id=store_id)
+            return store.products.all()
+        except ObjectDoesNotExist:
+            return None
     @staticmethod
     def create(data):
-        return Product.objects.create(**data)
+        # These lines for fixing problem "Value error:Cannot assign "4": "Product.store_id" must be a "store" instance.
+        ###
+        store_id = data.pop('store_id')
+        store_instance = Store.objects.get(id=store_id)
+        data['store_id'] = store_instance
+        ###
+        product =Product.objects.create(**data)
+        product.save()
+        return product
     @staticmethod
     def update(product,data):
         if isinstance(product,Product):

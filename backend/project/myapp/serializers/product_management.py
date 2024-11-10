@@ -11,7 +11,7 @@ class ProductSerializer(serializers.ModelSerializer):
     old_price = serializers.DecimalField(max_digits=10,decimal_places=2,required=False,allow_null=True)
     class Meta:
         model = Product
-        fields = ['id','category','name','description','price','old_price','quantity','available','featured','image']
+        fields = ['id','category','name','description','price','old_price','quantity','available','featured','image','get_image','store_id']
         extra_kwargs = {
             'price' : {'required' : True},
         }
@@ -22,6 +22,11 @@ class ProductSerializer(serializers.ModelSerializer):
     #     except Exception as e:
     #         print(f"Error during serialization: {e}")
     #         raise e
+    def get_image(self,obj):
+        request = self.context.get('request')
+        if obj.image and request:
+            return request.build_absolute_uri(obj.image.url)
+        return None
     def create(self, validated_data):
         product = Product.objects.create(**validated_data)
         return product
