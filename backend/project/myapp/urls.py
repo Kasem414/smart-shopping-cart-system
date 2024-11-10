@@ -6,7 +6,8 @@ from .views.product_catalog import ProductCatalogView,ProductDetailCatalogView, 
 from rest_framework.routers import DefaultRouter
 from .views.shoppinglist_management import ProductViewSet, ShoppingListViewSet
 from .views.product_search import ProductSearchView
-# from .views.shoppinglist_management import ShoppingListDetailView,RemoveItemFromShoppingListView,AddItemToShoppingListView,MarkItemPickedView,UpdateItemQuantityView,ShoppingListListCreateView
+# from .views.store_management import StoreUpdateView,StoreListView
+
 router = DefaultRouter()
 router.register(r'shopping-products',ProductViewSet,basename='shopping-products')
 router.register(r'shopping-lists',ShoppingListViewSet,basename='shopping-list')
@@ -41,12 +42,8 @@ urlpatterns = [
     path("shopping-lists/remove-from-list/", ShoppingListViewSet.as_view({'delete':'remove_from_list'}), name="remove-from-list"),
     path("shopping-lists/update-quantity/", ShoppingListViewSet.as_view({'patch': 'update_quantity'}), name="update-quantity"),
     path("shopping-lists/toggle-picked-up/", ShoppingListViewSet.as_view({'patch': 'toggle_picked_up'}), name="toggle-picked-up"),
-    # Other Method
-    # path('shopping-lists/', ShoppingListListCreateView.as_view(), name='shopping-list-list-create'),
-    # path('shopping-lists/<int:list_id>/', ShoppingListDetailView.as_view(), name='shopping-list-detail'),
-    # path('shopping-lists/<int:list_id>/add-item/', AddItemToShoppingListView.as_view(), name='add-item-to-shopping-list'),
-    # path('shopping-lists/<int:list_id>/update-item/<int:product_id>/', UpdateItemQuantityView.as_view(), name='update-item-quantity'),
-    # path('shopping-lists/<int:list_id>/remove-item/<int:product_id>/', RemoveItemFromShoppingListView.as_view(), name='remove-item-from-shopping-list'),
-    # path('shopping-lists/<int:list_id>/mark-picked/<int:product_id>/', MarkItemPickedView.as_view(), name='mark-item-picked'),
+    # Endpoint for store management
+    # path("store/<int:pk>/",StoreUpdateView.as_view() , name=""),
+    # path("store/",StoreListView.as_view() , name=""),
 ]
 
