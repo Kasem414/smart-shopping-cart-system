@@ -33,7 +33,6 @@ import { MagnifyingGlass } from "react-loader-spinner";
 import { UserContext } from "../contexts/UserContext";
 import { ShoppingListContext } from "../contexts/ShoppingListContext";
 
-
 const Home = () => {
   const { user } = useContext(UserContext);
   const { addToList } = useContext(ShoppingListContext);
@@ -41,9 +40,7 @@ const Home = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true)
-
-  
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,8 +53,6 @@ const Home = () => {
         const categoriesData = await categoriesRes.json();
         const productsData = await productsRes.json();
 
-
-
         setCategories(categoriesData);
         setProducts(productsData);
       } catch (error) {
@@ -69,7 +64,6 @@ const Home = () => {
 
     fetchData();
   }, []);
-
 
   const toggleVisibility = () => {
     if (window.pageYOffset > 300) {
@@ -909,7 +903,9 @@ const Home = () => {
                                 <div className="card card-product">
                                   <div className="card-body">
                                     <div className="text-center position-relative">
-                                      <Link to={`/product-details/${product.id}`}>
+                                      <Link
+                                        to={`/product-details/${product.id}`}
+                                      >
                                         <img
                                           src={product.image}
                                           alt={product.name}
@@ -937,7 +933,6 @@ const Home = () => {
                                         >
                                           <i className="bi bi-cart" />
                                         </Link>
-                                       
                                       </div>
                                     </div>
                                     <div className="text-small mb-1">
@@ -945,9 +940,11 @@ const Home = () => {
                                         to="#!"
                                         className="text-decoration-none text-muted"
                                       >
-                                        {Array.isArray(categories) && categories.find(
-                                          (cat) => cat.id === product.category
-                                        )?.name || "Category"}
+                                        {(Array.isArray(categories) &&
+                                          categories.find(
+                                            (cat) => cat.id === product.category
+                                          )?.name) ||
+                                          "Category"}
                                       </Link>
                                     </div>
                                     <h2 className="fs-6">
@@ -974,19 +971,35 @@ const Home = () => {
                                       <button
                                         onClick={async () => {
                                           if (!user) {
-                                            alert("Please log in to add products to your shopping list.");
+                                            alert(
+                                              "Please log in to add products to your shopping list."
+                                            );
                                             return;
                                           }
                                           try {
-                                            const result = await addToList(product.id);
+                                            const result = await addToList(
+                                              product.id
+                                            );
                                             alert(result.message);
                                           } catch (err) {
-                                            console.error("Failed to add product:", err);
-                                            setError("Failed to add product to shopping list");
+                                            console.error(
+                                              "Failed to add product:",
+                                              err
+                                            );
+                                            setError(
+                                              "Failed to add product to shopping list"
+                                            );
                                           }
                                         }}
-                                        className="btn btn-primary"
-                                        disabled={!user}
+                                        className={`btn ${
+                                          user?.account_type === "customer"
+                                            ? "btn-primary"
+                                            : "btn-secondary"
+                                        }`}
+                                        disabled={
+                                          !user ||
+                                          user.account_type !== "customer"
+                                        }
                                       >
                                         <svg
                                           xmlns="http://www.w3.org/2000/svg"
@@ -1013,7 +1026,11 @@ const Home = () => {
                                             y2={12}
                                           />
                                         </svg>
-                                        {user ? 'Add to list' : 'Login to add'}
+                                        {!user
+                                          ? "Login to add"
+                                          : user.account_type === "customer"
+                                          ? "Add to list"
+                                          : "Only customers can add"}
                                       </button>
                                     </div>
                                     <div className="d-flex justify-content-start text-center mt-3">
@@ -1135,7 +1152,8 @@ const Home = () => {
             <>
               <div className="container">
                 <Slider {...settings2}>
-                  {Array.isArray(categories) && categories.length > 0 && (
+                  {Array.isArray(categories) &&
+                    categories.length > 0 &&
                     categories.map((category) => (
                       <div key={category.id} className="m-1">
                         <div className="partner-list">
@@ -1150,8 +1168,7 @@ const Home = () => {
                           </h6>
                         </div>
                       </div>
-                    ))
-                  )}
+                    ))}
                 </Slider>
               </div>
             </>

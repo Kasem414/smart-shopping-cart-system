@@ -19,7 +19,7 @@ export const ShoppingListProvider = ({ children }) => {
   }, [shoppingList]);
 
   const fetchShoppingList = async () => {
-    if (!user) return;
+    if (!user || user.account_type=="store_owner") return;
     
     try {
       const token = localStorage.getItem("access_token");
