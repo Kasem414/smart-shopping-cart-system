@@ -204,6 +204,7 @@ class ListView extends ViewStrategy {
                           setError("Failed to add product to shopping list");
                         }
                       }}
+                      disabled={!user || user.account_type !== "customer"}
                     >
                       <i className="bi bi-plus"></i> Add to List
                     </button>
