@@ -1,120 +1,159 @@
 import React, { useState } from "react";
+import styled from "styled-components";
 import ProductManagement from "./ProductMgt";
 import CategoryManagement from "./CategoryMgt";
-import { FaBox, FaListUl, FaBars, FaTimes } from "react-icons/fa";
+import LayoutEditor from "../layout-editor/LayoutEditor";
+import { FaBox, FaListUl, FaStore, FaChevronLeft } from "react-icons/fa";
 
-const MainDashboard = () => {
-  // State to manage active component and sidebar visibility
-  const [activeComponent, setActiveComponent] = useState("products");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+const DashboardContainer = styled.div`
+  min-height: 100vh;
+  background-color: #f8fafc;
+  display: flex;
+`;
 
-  // Function to toggle sidebar visibility
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+const Sidebar = styled.div`
+  background: white;
+  border-right: 1px solid #e2e8f0;
+  padding: 2rem 0;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+  width: ${props => props.$collapsed ? '80px' : '250px'};
+  transition: width 0.3s ease;
+  position: relative;
+`;
+
+const ToggleButton = styled.button`
+  position: absolute;
+  right: -12px;
+  top: 20px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 10;
+
+  svg {
+    font-size: 0.8rem;
+    color: #64748b;
+    transition: transform 0.3s ease;
+    transform: rotate(${(props) => (props.$collapsed ? "180deg" : "0deg")});
+  }
+
+  &:hover {
+    background: #f8fafc;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+`;
+
+const NavList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+`;
+
+const NavItem = styled.li`
+  margin: 0.5rem 0;
+`;
+
+const NavButton = styled.button`
+  width: 100%;
+  padding: 1rem;
+  padding-left: ${props => props.$collapsed ? '1.5rem' : '2rem'};
+  border: none;
+  background: ${props => props.$active ? '#e2e8f0' : 'transparent'};
+  color: ${props => props.$active ? '#1e293b' : '#64748b'};
+  font-weight: ${props => props.$active ? '600' : '400'};
+  text-align: left;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+
+  &:hover {
+    background: ${props => props.$active ? '#e2e8f0' : '#f1f5f9'};
+    color: #1e293b;
+  }
+
+  svg {
+    font-size: 1.25rem;
+    min-width: 20px;
+  }
+
+  span {
+    opacity: ${(props) => (props.$collapsed ? "0" : "1")};
+    transition: opacity 0.2s ease;
+  }
+`;
+
+const MainContent = styled.div`
+  padding: 2rem;
+  flex: 1;
+  overflow: hidden;
+`;
+
+const StoreDashboard = () => {
+  const [activeTab, setActiveTab] = useState("products");
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div className="d-flex" style={{ minHeight: "100vh" }}>
-      {/* Sidebar */}
-      <div
-        className={`text-white ${sidebarOpen ? "p-4" : "p-2"} ${
-          sidebarOpen ? "sidebar-open" : "sidebar-closed"
-        }`}
-        style={{
-          // Dynamic width based on sidebar state
-          width: sidebarOpen ? "250px" : "60px",
-          height: "100vh",
-          overflowY: "auto",
-          overflowX: "hidden",
-          background: "linear-gradient(to bottom, #E9ECEF, #E9ECEF)",
-          transition: "width 0.3s ease-in-out",
-          position: "fixed",
-          zIndex: 1000,
-        }}
-      >
-        {/* Sidebar header with toggle button */}
-        <div
-          className={`d-flex ${
-            sidebarOpen ? "justify-content-between" : "justify-content-center"
-          } align-items-center mb-4`}
+    <DashboardContainer>
+      <Sidebar $collapsed={isCollapsed}>
+        <ToggleButton
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          $collapsed={isCollapsed}
         >
-          {sidebarOpen && <h4 className="m-0" style={{fontFamily:"cursive", fontSize:"20px"}}>Store Dashboard</h4>}
-          <button
-            className="btn btn-link text-dark p-0"
-            onClick={toggleSidebar}
-            style={{ fontSize: "1.5rem" }}
-          >
-            {sidebarOpen ? <FaTimes /> : <FaBars />}
-          </button>
-        </div>
-
-        {/* Sidebar navigation buttons */}
-        <ul className="list-unstyled">
-          {/* Products management button */}
-          <li className="mb-3">
-            <button
-              className={`btn ${
-                activeComponent === "products"
-                  ? "btn-primary"
-                  : "btn-outline-dark"
-              } w-100 ${sidebarOpen ? "text-start" : "justify-content-center"}`}
-              onClick={() => setActiveComponent("products")}
-              style={{ whiteSpace: "nowrap", overflow: "hidden" }}
+          <FaChevronLeft />
+        </ToggleButton>
+        <NavList>
+          <NavItem>
+            <NavButton
+              $active={activeTab === "products"}
+              onClick={() => setActiveTab("products")}
+              $collapsed={isCollapsed}
             >
-              <FaBox className={sidebarOpen ? "me-2" : ""} />
-              <span
-                style={{
-                  opacity: sidebarOpen ? 1 : 0,
-                  transition: "opacity 0.1s",
-                  transitionDelay: sidebarOpen ? "0.2s" : "0s",
-                }}
-              >
-                Manage Products
-              </span>
-            </button>
-          </li>
-          {/* Categories management button */}
-          <li>
-            <button
-              className={`btn ${
-                activeComponent === "categories"
-                  ? "btn-primary"
-                  : "btn-outline-dark"
-              } w-100 ${sidebarOpen ? "text-start" : "justify-content-center"}`}
-              onClick={() => setActiveComponent("categories")}
-              style={{ whiteSpace: "nowrap", overflow: "hidden" }}
+              <FaBox />
+              <span>Products</span>
+            </NavButton>
+          </NavItem>
+          <NavItem>
+            <NavButton
+              $active={activeTab === "categories"}
+              onClick={() => setActiveTab("categories")}
+              $collapsed={isCollapsed}
             >
-              <FaListUl className={sidebarOpen ? "me-2" : ""} />
-              <span
-                style={{
-                  opacity: sidebarOpen ? 1 : 0,
-                  transition: "opacity 0.1s",
-                  transitionDelay: sidebarOpen ? "0.2s" : "0s",
-                }}
-              >
-                Manage Categories
-              </span>
-            </button>
-          </li>
-        </ul>
-      </div>
+              <FaListUl />
+              <span>Categories</span>
+            </NavButton>
+          </NavItem>
+          <NavItem>
+            <NavButton
+              $active={activeTab === "layout"}
+              onClick={() => setActiveTab("layout")}
+              $collapsed={isCollapsed}
+            >
+              <FaStore />
+              <span>Store Layout</span>
+            </NavButton>
+          </NavItem>
+        </NavList>
+      </Sidebar>
 
-      {/* Main Content */}
-      <div
-        style={{
-          // Dynamic margin and width based on sidebar state
-          marginLeft: sidebarOpen ? "250px" : "60px",
-          width: sidebarOpen ? "calc(100% - 250px)" : "calc(100% - 60px)",
-          transition: "all 0.3s ease-in-out",
-          minHeight: "100vh",
-        }}
-      >
-        <div className="container-fluid p-4">
-          {/* Render active component based on state */}
-          {activeComponent === "products" && <ProductManagement />}
-          {activeComponent === "categories" && <CategoryManagement />}
-        </div>
-      </div>
-    </div>
+      <MainContent>
+        {activeTab === "products" && <ProductManagement />}
+        {activeTab === "categories" && <CategoryManagement />}
+        {activeTab === "layout" && <LayoutEditor />}
+      </MainContent>
+    </DashboardContainer>
   );
 };
 
-export default MainDashboard;
+export default StoreDashboard;
