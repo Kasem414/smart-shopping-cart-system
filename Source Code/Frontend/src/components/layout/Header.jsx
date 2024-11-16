@@ -4,6 +4,7 @@ import menubanner from "../../images/menu-banner.jpg";
 import { Link } from "react-router-dom";
 import { ShoppingListContext } from "../contexts/ShoppingListContext";
 import { UserContext } from "../contexts/UserContext";
+import { IoStorefrontOutline } from "react-icons/io5";
 
 const Header = () => {
   const { user, logout } = useContext(UserContext);
@@ -11,6 +12,7 @@ const Header = () => {
   const { shoppingList } = useContext(ShoppingListContext);
   const itemCount = shoppingList.items.length;
 
+  
   const handleClick = () => {
     setIsOpen(!isOpen);
   };
@@ -79,7 +81,7 @@ const Header = () => {
                 className="dropdown-menu sm-menu"
                 aria-labelledby="navbarDropdown"
               >
-                <Link class="dropdown-item" to="/Blog">
+                <Link className="dropdown-item" to="/Blog">
                   Blog
                 </Link>
                 <Link className="dropdown-item" to="/BlogCategory">
@@ -266,6 +268,17 @@ const Header = () => {
                     Welcome, {user.first_name} {user.last_name}
                   </span>
                 </li>
+                {user.account_type === 'store_owner' && (
+                  <li className="nav-item">
+                    <Link 
+                      className="nav-link text-muted" 
+                      to="/store-dashboard"
+                      title="Store Dashboard"
+                    >
+                      <IoStorefrontOutline style={{ fontSize: "1.5rem" }} />
+                    </Link>
+                  </li>
+                )}
                 <li className="nav-item">
                   <button
                     className="nav-link text-muted border-0 bg-transparent"

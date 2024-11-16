@@ -616,75 +616,32 @@ const ProductManagement = () => {
       {/* Products Table */}
       <div className="table-responsive">
         <table className="table table-hover">
-          <colgroup>
-            <col style={{ width: "5%" }} /> {/* # column */}
-            <col style={{ width: "30%" }} /> {/* Name column */}
-            <col style={{ width: "15%" }} /> {/* Price column */}
-            <col style={{ width: "15%" }} /> {/* Category column */}
-            <col style={{ width: "20%" }} /> {/* Image column */}
-            <col style={{ width: "15%" }} /> {/* Actions column */}
-          </colgroup>
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th
-                onClick={() => handleSort("name")}
-                style={{ cursor: "pointer" }}
-              >
-                Name{" "}
-                {sortColumn === "name" && (sortOrder === "asc" ? "▲" : "▼")}
-              </th>
-              <th
-                onClick={() => handleSort("price")}
-                style={{ cursor: "pointer" }}
-              >
-                Price{" "}
-                {sortColumn === "price" && (sortOrder === "asc" ? "▲" : "▼")}
-              </th>
-              <th>Category</th> {/* Removed onClick and sorting indicators */}
-              <th>Image</th>
-              <th scope="col">Actions</th>
-            </tr>
-          </thead>
+          <colgroup><col style={{ width: "5%" }}/><col style={{ width: "30%" }}/><col style={{ width: "15%" }}/><col style={{ width: "15%" }}/><col style={{ width: "15%" }}/><col style={{ width: "20%" }}/></colgroup>
+          <thead><tr>
+            <th scope="col">#</th>
+            <th onClick={() => handleSort("name")} style={{ cursor: "pointer" }}>
+              Name {sortColumn === "name" && (sortOrder === "asc" ? "▲" : "▼")}
+            </th>
+            <th onClick={() => handleSort("price")} style={{ cursor: "pointer" }}>
+              Price {sortColumn === "price" && (sortOrder === "asc" ? "▲" : "▼")}
+            </th>
+            <th>Category</th>
+            <th>Image</th>
+            <th scope="col" style={{ textAlign: "center" }}>Actions</th>
+          </tr></thead>
           <tbody>
             {sortedProducts
               .slice(indexOfFirstProduct, indexOfLastProduct)
               .map((product, index) => (
                 <tr key={product.id}>
-                  <th scope="row">
-                    {index + 1 + (currentPage - 1) * productsPerPage}
-                  </th>
-                  <td
-                    className="text-truncate"
-                    style={{ maxWidth: "200px" }}
-                    title={product.name || "N/A"}
-                  >
-                    {product.name || "N/A"}
-                  </td>
+                  <th scope="row">{index + 1 + (currentPage - 1) * productsPerPage}</th>
+                  <td className="text-truncate" style={{ maxWidth: "200px" }} title={product.name || "N/A"}>{product.name || "N/A"}</td>
                   <td>${product.price || "N/A"}</td>
-                  <td
-                    className="text-truncate"
-                    style={{ maxWidth: "150px" }}
-                    title={getCategoryName(product.category)}
-                  >
-                    {getCategoryName(product.category)}
-                  </td>
-                  <td>
-                    {product.image ? (
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        style={{
-                          width: "50px",
-                          height: "50px",
-                          objectFit: "cover",
-                        }}
-                      />
-                    ) : (
-                      "No Image"
-                    )}
-                  </td>
-                  <td>
+                  <td className="text-truncate" style={{ maxWidth: "150px" }} title={getCategoryName(product.category)}>{getCategoryName(product.category)}</td>
+                  <td>{product.image ? (
+                    <img src={product.image} alt={product.name} style={{width: "50px", height: "50px", objectFit: "cover"}}/>
+                  ) : "No Image"}</td>
+                  <td style={{textAlign: "center"}}>
                     <button
                       className="btn me-2"
                       onClick={(e) => {

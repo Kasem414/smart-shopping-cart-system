@@ -1138,7 +1138,7 @@ const Home = () => {
                               <p>
                                 Get your order delivered to your doorstep at the
                                 earliest from FreshCart pickup
-                                <p> stores near you.</p>
+                                stores near you.
                               </p>
                             </div>
                           </div>
