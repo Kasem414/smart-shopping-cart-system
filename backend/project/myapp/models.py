@@ -167,3 +167,18 @@ class ShoppingListItem(models.Model):
     def __str__(self):
         return f"{self.product.name} (x{self.quantity}) - {'Picked Up' if self.picked_up else 'Not Picked Up'}"
 
+
+class StoreLayout(models.Model):
+    store = models.OneToOneField(Store, on_delete=models.CASCADE, related_name='layout')
+    grid_size = models.PositiveIntegerField(default=50)
+    last_modified = models.DateTimeField(auto_now=True)
+
+class Component(models.Model):
+    layout = models.ForeignKey(StoreLayout, on_delete=models.CASCADE, related_name='components')
+    component_id = models.BigIntegerField(unique=True)
+    type = models.CharField(max_length=50)
+    position_x = models.PositiveIntegerField()
+    position_y = models.PositiveIntegerField()
+    width = models.PositiveIntegerField()
+    height = models.PositiveIntegerField()
+    categories = models.JSONField(default=list)  # Storing categories as an array of strings

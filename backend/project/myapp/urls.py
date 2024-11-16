@@ -6,6 +6,7 @@ from .views.product_catalog import ProductCatalogView,ProductDetailCatalogView, 
 from rest_framework.routers import DefaultRouter
 from .views.shoppinglist_management import ProductViewSet, ShoppingListViewSet
 from .views.product_search import ProductSearchView
+from .views.layout_management import StoreLayoutView
 # from .views.store_management import StoreUpdateView,StoreListView
 
 router = DefaultRouter()
@@ -45,5 +46,8 @@ urlpatterns = [
     # Endpoint for store management
     # path("store/<int:pk>/",StoreUpdateView.as_view() , name=""),
     # path("store/",StoreListView.as_view() , name=""),
+    # Endpoints for store layout management    
+    path('layout/', StoreLayoutView.as_view(), name='store-layout'),
+
 ]
 
