@@ -175,7 +175,7 @@ class StoreLayout(models.Model):
 
 class Component(models.Model):
     layout = models.ForeignKey(StoreLayout, on_delete=models.CASCADE, related_name='components')
-    component_id = models.BigIntegerField(unique=True)
+    component_id = models.BigIntegerField()
     type = models.CharField(max_length=50)
     position_x = models.PositiveIntegerField()
     position_y = models.PositiveIntegerField()
