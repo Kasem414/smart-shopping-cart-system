@@ -43,11 +43,10 @@ urlpatterns = [
     path("shopping-lists/remove-from-list/", ShoppingListViewSet.as_view({'delete':'remove_from_list'}), name="remove-from-list"),
     path("shopping-lists/update-quantity/", ShoppingListViewSet.as_view({'patch': 'update_quantity'}), name="update-quantity"),
     path("shopping-lists/toggle-picked-up/", ShoppingListViewSet.as_view({'patch': 'toggle_picked_up'}), name="toggle-picked-up"),
+    # Endpoints for store layout management    
+    path('layouts/', StoreLayoutView.as_view(), name='store-layout'),
     # Endpoint for store management
     # path("store/<int:pk>/",StoreUpdateView.as_view() , name=""),
     # path("store/",StoreListView.as_view() , name=""),
-    # Endpoints for store layout management    
-    path('layout/', StoreLayoutView.as_view(), name='store-layout'),
-
 ]
 
