@@ -1,38 +1,36 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 export const useLayoutHistory = (initialState) => {
-  const [history, setHistory] = useState([initialState]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const historyRef = useRef([initialState]);
 
   const reset = useCallback(() => {
-    setHistory([[]]);
+    historyRef.current = [[]];
     setCurrentIndex(0);
     return [];
   }, []);
 
   const addToHistory = useCallback((newState) => {
-    setHistory(prev => {
-      const newHistory = prev.slice(0, currentIndex + 1);
-      return [...newHistory, newState];
-    });
-    setCurrentIndex(prev => prev + 1);
+    historyRef.current = historyRef.current.slice(0, currentIndex + 1);
+    historyRef.current.push(newState);
+    setCurrentIndex(currentIndex + 1);
   }, [currentIndex]);
 
   const undo = useCallback(() => {
     if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
-      return history[currentIndex - 1];
+      setCurrentIndex(prevIndex => prevIndex - 1);
+      return historyRef.current[currentIndex - 1];
     }
-    return history[currentIndex];
-  }, [currentIndex, history]);
+    return historyRef.current[currentIndex];
+  }, [currentIndex]);
 
   const redo = useCallback(() => {
-    if (currentIndex < history.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-      return history[currentIndex + 1];
+    if (currentIndex < historyRef.current.length - 1) {
+      setCurrentIndex(prevIndex => prevIndex + 1);
+      return historyRef.current[currentIndex + 1];
     }
-    return history[currentIndex];
-  }, [currentIndex, history]);
+    return historyRef.current[currentIndex];
+  }, [currentIndex]);
 
   return {
     undo,
@@ -40,6 +38,6 @@ export const useLayoutHistory = (initialState) => {
     addToHistory,
     reset,
     canUndo: currentIndex > 0,
-    canRedo: currentIndex < history.length - 1,
+    canRedo: currentIndex < historyRef.current.length - 1,
   };
 }; 

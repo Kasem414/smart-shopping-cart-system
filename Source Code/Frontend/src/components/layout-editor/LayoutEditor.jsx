@@ -270,11 +270,13 @@ const LayoutEditor = () => {
   const handleUndo = useCallback(() => {
     const previousState = undo();
     setLayout(previousState);
+    setSelectedItem(null);
   }, [undo]);
 
   const handleRedo = useCallback(() => {
     const nextState = redo();
     setLayout(nextState);
+    setSelectedItem(null);
   }, [redo]);
 
   const handleReset = useCallback(async () => {
@@ -349,12 +351,26 @@ const LayoutEditor = () => {
     }
 
     // Delete: Delete or Backspace
-    if ((e.key === 'Delete' || e.key === 'Backspace') && selectedItem) {
+    if ((e.key === 'Delete') && selectedItem) {
       handleDeleteItem(selectedItem.id);
       setSelectedItem(null);
       e.preventDefault();
     }
-  }, [selectedItem, clipboard, canUndo, canRedo, undo, redo, handleDeleteItem, gridSize]);
+
+    if ((e.key === 'Escape') && selectedItem) {
+      setSelectedItem(null);
+      e.preventDefault();
+    }
+
+    if ((e.key === 'z') && (e.ctrlKey || e.metaKey)) {
+      handleUndo();
+      e.preventDefault();
+    }
+    if ((e.key === 'y') && (e.ctrlKey || e.metaKey)) {
+      handleRedo();
+      e.preventDefault();
+    }
+  }, [selectedItem, clipboard, canUndo, canRedo, handleUndo, handleRedo, handleDeleteItem, gridSize]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
