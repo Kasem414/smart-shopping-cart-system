@@ -7,8 +7,36 @@ const ItemContainer = styled.div`
   position: relative;
   width: 100%;
   height: 100%;
-  background: ${props => props.isSelected ? '#e2e8f0' : 'white'};
-  border: 2px solid ${props => props.isSelected ? '#3b82f6' : '#94a3b8'};
+  background: ${props => {
+    if (props.isSelected) return '#e2e8f0';
+    switch (props.itemType) {
+      case 'shelf':
+        return '#f5f3ff'; //light violet
+      case 'entrance':
+        return '#ecfdf5'; //light green
+      case 'checkoutCounter':
+        return '#fff7ed'; // Warm orange/peach
+      case 'aisle':
+        return '#f3f4f6'; // Light gray
+      default:
+        return 'white';
+    }
+  }};
+  border: 2px solid ${props => {
+    if (props.isSelected) return '#3b82f6';
+    switch (props.itemType) {
+      case 'shelf':
+        return '#9163cb'; // Darker violet
+      case 'entrance':
+        return '#10b981'; // Darker green
+      case 'checkoutCounter':
+        return '#f97316'; // Orange
+      case 'aisle':
+        return '#9ca3af'; // Medium gray
+      default:
+        return '#94a3b8';
+    }
+  }};
   border-radius: 0.25rem;
   display: flex;
   align-items: center;
@@ -21,37 +49,6 @@ const ItemContainer = styled.div`
   }
 `;
 
-const ItemLabel = styled.div`
-  position: absolute;
-  bottom: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.75rem;
-  color: #64748b;
-  white-space: nowrap;
-`;
-
-const DeleteButton = styled.button`
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #ef4444;
-  color: white;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s;
-
-  ${ItemContainer}:hover & {
-    opacity: 1;
-  }
-`;
 
 const CategoryBadge = styled.span`
   background: ${props => props.color || '#3b82f6'};
@@ -157,6 +154,7 @@ const LayoutItem = ({
       >
         <ItemContainer
           isSelected={isSelected}
+          itemType={item.type}
           onClick={(e) => {
             e.stopPropagation();
             onSelect();
@@ -176,11 +174,7 @@ const LayoutItem = ({
               ))}
             </Categories>
           )}
-          {isSelected && !isResizing && (
-            <DeleteButton onClick={onDelete}>
-              <i className="bi bi-x" />
-            </DeleteButton>
-          )}
+         
         </ItemContainer>
       </Rnd>
 

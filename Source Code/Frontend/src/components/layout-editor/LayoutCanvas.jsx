@@ -48,7 +48,6 @@ const LayoutCanvas = ({
       const offset = monitor.getClientOffset();
       const canvasRect = document.getElementById('layout-canvas').getBoundingClientRect();
       
-      // Calculate position relative to canvas and snap to grid
       const x = Math.round((offset.x - canvasRect.left) / gridSize) * gridSize;
       const y = Math.round((offset.y - canvasRect.top) / gridSize) * gridSize;
       
@@ -56,9 +55,19 @@ const LayoutCanvas = ({
     },
   }), [gridSize, onAddItem]);
 
+  const handleCanvasClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onSelectItem(null);
+    }
+  };
+
   return (
     <CanvasContainer>
-      <Canvas id="layout-canvas" ref={drop}>
+      <Canvas 
+        id="layout-canvas" 
+        ref={drop}
+        onClick={handleCanvasClick}
+      >
         <Grid showGrid={showGrid} gridSize={gridSize} />
         
         {layout.map((item) => (
