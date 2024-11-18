@@ -44,7 +44,8 @@ const ItemContainer = styled.div`
   align-items: center;
   justify-content: center;
   cursor: move;
-  transition: background 0.2s;
+  transition: ${props => props.isRotating ? 'none' : 'background 0.2s'};
+  transform: rotate(${props => props.rotation}deg);
 
   &:hover {
     background: ${props => props.hasOverlap ? '#fee2e2' : '#f1f5f9'};
@@ -98,40 +99,102 @@ const getCategoryColor = (index) => {
   return colors[index % colors.length];
 };
 
+const ResizeHandlesWrapper = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+`;
+
 const ResizeHandle = styled.div`
   position: absolute;
-  width: 9px;
-  height: 9px;
+  width: 20px;
+  height: 20px;
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 9px;
+    height: 9px;
+    background: #3b82f6;
+    border: 1px solid white;
+    border-radius: 50%;
+  }
+  
+  &.topLeft {
+    top: -10px;
+    left: -10px;
+    cursor: ${props => `${getCursorAngle(props.rotation, 'nw-resize')}`};
+  }
+  &.topRight {
+    top: -10px;
+    right: -10px;
+    cursor: ${props => `${getCursorAngle(props.rotation, 'ne-resize')}`};
+  }
+  &.bottomRight {
+    bottom: -10px;
+    right: -10px;
+    cursor: ${props => `${getCursorAngle(props.rotation, 'se-resize')}`};
+  }
+  &.bottomLeft {
+    bottom: -10px;
+    left: -10px;
+    cursor: ${props => `${getCursorAngle(props.rotation, 'sw-resize')}`};
+  }
+
+  &:hover::after {
+    transform: translate(-50%, -50%) scale(1.2);
+    background: #2563eb;
+  }
+`;
+
+// Helper function to calculate cursor angle
+const getCursorAngle = (rotation, defaultCursor) => {
+  const angle = rotation % 360;
+  const cursors = ['nw-resize', 'n-resize', 'ne-resize', 'e-resize', 
+                   'se-resize', 's-resize', 'sw-resize', 'w-resize'];
+  const index = Math.round(angle / 45) % 8;
+  
+  if (defaultCursor === 'nw-resize') return cursors[index];
+  if (defaultCursor === 'ne-resize') return cursors[(index + 2) % 8];
+  if (defaultCursor === 'se-resize') return cursors[(index + 4) % 8];
+  if (defaultCursor === 'sw-resize') return cursors[(index + 6) % 8];
+  return defaultCursor;
+};
+
+
+const RotationHandle = styled.div`
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
   background: #3b82f6;
   border: 1px solid white;
   border-radius: 50%;
-  z-index: 1;
+  cursor: pointer;
+  z-index: 2;
   
   &:hover {
-    transform: scale(1.2);
+    transform: translateX(-50%) scale(1.2);
     background: #2563eb;
   }
+`;
 
-  &.topLeft {
-    top: 7px;
-    left: 7px;
-    cursor: nw-resize;
-  }
-  &.topRight {
-    top: 7px;
-    right: 7px;
-    cursor: ne-resize;
-  }
-  &.bottomRight {
-    bottom: 7px;
-    right: 7px;
-    cursor: se-resize;
-  }
-  &.bottomLeft {
-    bottom: 7px;
-    left: 7px;
-    cursor: sw-resize;
-  }
+const RotationGuide = styled.div`
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  width: 1px;
+  height: 20px;
+  background: #3b82f6;
+  transform-origin: bottom;
+  opacity: ${props => props.isRotating ? 0.5 : 0};
 `;
 
 const LayoutItem = ({
@@ -145,6 +208,9 @@ const LayoutItem = ({
 }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [isRotating, setIsRotating] = useState(false);
+  const [rotation, setRotation] = useState(item.rotation || 0);
+  const containerRef = React.useRef(null);
 
   const handleDoubleClick = (e) => {
     e.stopPropagation();
@@ -182,6 +248,54 @@ const LayoutItem = ({
       })
     );
   };
+
+  const handleRotationStart = (e) => {
+    e.stopPropagation();
+    setIsRotating(true);
+  };
+
+  const handleRotationMove = (e) => {
+    if (!isRotating || !containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    let angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI) + 90;
+    
+    // Add damping to make rotation less sensitive
+    const dampingFactor = 0.8;
+    angle = angle * dampingFactor + rotation * (1 - dampingFactor);
+    
+    // Snap to nearest 45 degrees when within 5 degrees
+    const snapThreshold = 5;
+    const snapAngles = [0, 45, 90, 135, 180, -135, -90, -45];
+    
+    for (const snapAngle of snapAngles) {
+      if (Math.abs(angle - snapAngle) < snapThreshold) {
+        angle = snapAngle;
+        break;
+      }
+    }
+
+    setRotation(angle);
+  };
+
+  const handleRotationEnd = () => {
+    setIsRotating(false);
+    onUpdate({ rotation });
+  };
+
+  React.useEffect(() => {
+    if (isRotating) {
+      window.addEventListener('mousemove', handleRotationMove);
+      window.addEventListener('mouseup', handleRotationEnd);
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleRotationMove);
+      window.removeEventListener('mouseup', handleRotationEnd);
+    };
+  }, [isRotating]);
 
   return (
     <>
@@ -234,12 +348,6 @@ const LayoutItem = ({
         bounds="parent"
         resizeGrid={[gridSize, gridSize]}
         dragGrid={[gridSize, gridSize]}
-        resizeHandleComponent={{
-          topLeft: isSelected && <ResizeHandle className="topLeft" />,
-          topRight: isSelected && <ResizeHandle className="topRight" />,
-          bottomRight: isSelected && <ResizeHandle className="bottomRight" />,
-          bottomLeft: isSelected && <ResizeHandle className="bottomLeft" />
-        }}
         enableResizing={{
           top: false,
           right: false,
@@ -252,6 +360,7 @@ const LayoutItem = ({
         }}
       >
         <ItemContainer
+          ref={containerRef}
           isSelected={isSelected}
           itemType={item.type}
           hasOverlap={!isValidPosition(item, layout, item.id)}
@@ -260,6 +369,8 @@ const LayoutItem = ({
             onSelect();
           }}
           onDoubleClick={handleDoubleClick}
+          rotation={rotation}
+          isRotating={isRotating}
         >
           <i className={item.icon} />
           {item.categories && item.categories.length > 0 && (
@@ -274,7 +385,27 @@ const LayoutItem = ({
               ))}
             </Categories>
           )}
-         
+
+          {isSelected && !isRotating && (
+            <ResizeHandlesWrapper>
+              <ResizeHandle className="topLeft" rotation={rotation} />
+              <ResizeHandle className="topRight" rotation={rotation} />
+              <ResizeHandle className="bottomRight" rotation={rotation} />
+              <ResizeHandle className="bottomLeft" rotation={rotation} />
+            </ResizeHandlesWrapper>
+          )}
+          
+          {isSelected && (
+            <>
+              <RotationHandle
+                onMouseDown={handleRotationStart}
+              />
+              <RotationGuide
+                isRotating={isRotating}
+                style={{ transform: `rotate(${rotation}deg)` }}
+              />
+            </>
+          )}
         </ItemContainer>
       </Rnd>
 

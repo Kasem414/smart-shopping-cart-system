@@ -177,6 +177,7 @@ const LayoutEditor = () => {
       position_x: position.x,
       position_y: position.y,
       categories: item.type === 'shelf' ? [] : undefined,
+      rotation: 0,
     };
 
     setLayout(prev => {
@@ -206,7 +207,6 @@ const LayoutEditor = () => {
     });
   }, [addToHistory]);
 
-
   // save layout to backend
   const handleSaveLayout = useCallback(async () => {
     try {
@@ -218,6 +218,7 @@ const LayoutEditor = () => {
           position_y: item.position_y,
           width: item.width,
           height: item.height,
+          rotation: item.rotation,
           categories: item.type === "shelf" ? item.categories : [],
         })),
         gridSize,
