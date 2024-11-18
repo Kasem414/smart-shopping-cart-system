@@ -172,7 +172,7 @@ const ProductManagement = () => {
         quantity: "",
       });
       setCategory("");
-      handleCloseForm();
+      // handleCloseForm();
     } catch (error) {
       console.error(
         "Error adding product:",
@@ -223,7 +223,7 @@ const ProductManagement = () => {
       setIsEditing(false);
       setEditingProduct(null);
       setCategory("");
-      handleCloseForm();
+      // handleCloseForm();
     } catch (error) {
       console.error("Error editing product:", error);
       if (error.response) {
@@ -409,7 +409,7 @@ const ProductManagement = () => {
                   } else {
                     addProduct(e);
                   }
-                  handleCloseForm();
+                  // handleCloseForm();
                 }}
               >
                 <div className="form-group mb-3">

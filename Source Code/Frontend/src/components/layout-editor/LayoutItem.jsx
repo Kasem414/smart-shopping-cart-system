@@ -96,6 +96,42 @@ const getCategoryColor = (index) => {
   return colors[index % colors.length];
 };
 
+const ResizeHandle = styled.div`
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  background: #3b82f6;
+  border: 1px solid white;
+  border-radius: 50%;
+  z-index: 1;
+  
+  &:hover {
+    transform: scale(1.2);
+    background: #2563eb;
+  }
+
+  &.topLeft {
+    top: 7px;
+    left: 7px;
+    cursor: nw-resize;
+  }
+  &.topRight {
+    top: 7px;
+    right: 7px;
+    cursor: ne-resize;
+  }
+  &.bottomRight {
+    bottom: 7px;
+    right: 7px;
+    cursor: se-resize;
+  }
+  &.bottomLeft {
+    bottom: 7px;
+    left: 7px;
+    cursor: sw-resize;
+  }
+`;
+
 const LayoutItem = ({
   item,
   gridSize,
@@ -151,6 +187,22 @@ const LayoutItem = ({
         bounds="parent"
         resizeGrid={[gridSize, gridSize]}
         dragGrid={[gridSize, gridSize]}
+        resizeHandleComponent={{
+          topLeft: isSelected && <ResizeHandle className="topLeft" />,
+          topRight: isSelected && <ResizeHandle className="topRight" />,
+          bottomRight: isSelected && <ResizeHandle className="bottomRight" />,
+          bottomLeft: isSelected && <ResizeHandle className="bottomLeft" />
+        }}
+        enableResizing={{
+          top: false,
+          right: false,
+          bottom: false,
+          left: false,
+          topRight: isSelected,
+          bottomRight: isSelected,
+          bottomLeft: isSelected,
+          topLeft: isSelected
+        }}
       >
         <ItemContainer
           isSelected={isSelected}
