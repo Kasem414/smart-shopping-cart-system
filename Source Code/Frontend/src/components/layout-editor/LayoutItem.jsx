@@ -8,6 +8,7 @@ const ItemContainer = styled.div`
   width: 100%;
   height: 100%;
   background: ${props => {
+    if (props.hasOverlap) return '#fee2e2';
     if (props.isSelected) return '#e2e8f0';
     switch (props.itemType) {
       case 'shelf':
@@ -23,6 +24,7 @@ const ItemContainer = styled.div`
     }
   }};
   border: 2px solid ${props => {
+    if (props.hasOverlap) return '#ef4444';
     if (props.isSelected) return '#3b82f6';
     switch (props.itemType) {
       case 'shelf':
@@ -45,7 +47,7 @@ const ItemContainer = styled.div`
   transition: background 0.2s;
 
   &:hover {
-    background: #f1f5f9;
+    background: ${props => props.hasOverlap ? '#fee2e2' : '#f1f5f9'};
   }
 `;
 
@@ -139,6 +141,7 @@ const LayoutItem = ({
   onSelect,
   onUpdate,
   onDelete,
+  layout,
 }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -154,6 +157,32 @@ const LayoutItem = ({
     onUpdate({ categories });
   };
 
+  const checkOverlap = (rect1, rect2) => {
+    return !(rect1.x + rect1.width <= rect2.x ||
+             rect1.x >= rect2.x + rect2.width ||
+             rect1.y + rect1.height <= rect2.y ||
+             rect1.y >= rect2.y + rect2.height);
+  };
+  
+  const isValidPosition = (newItem, layout, excludeId = null) => {
+    const newRect = {
+      x: newItem.position_x,
+      y: newItem.position_y,
+      width: newItem.width * gridSize,
+      height: newItem.height * gridSize
+    };
+  
+    return !layout.some(item => 
+      item.id !== excludeId && 
+      checkOverlap(newRect, {
+        x: item.position_x,
+        y: item.position_y,
+        width: item.width * gridSize,
+        height: item.height * gridSize
+      })
+    );
+  };
+
   return (
     <>
       <Rnd
@@ -166,20 +195,38 @@ const LayoutItem = ({
           y: item.position_y,
         }}
         onDragStop={(e, d) => {
-          onUpdate({
+          const newPosition = {
             position_x: Math.round(d.x / gridSize) * gridSize,
-            position_y: Math.round(d.y / gridSize) * gridSize,
-          });
+            position_y: Math.round(d.y / gridSize) * gridSize
+          };
+          
+          const newItem = {
+            ...item,
+            ...newPosition
+          };
+          
+          if (isValidPosition(newItem, layout, item.id)) {
+            onUpdate(newPosition);
+          }
         }}
         onResizeStart={() => setIsResizing(true)}
         onResizeStop={(e, direction, ref, delta, position) => {
           setIsResizing(false);
-          onUpdate({
+          const newUpdate = {
             width: Math.round(ref.offsetWidth / gridSize),
             height: Math.round(ref.offsetHeight / gridSize),
             position_x: Math.round(position.x / gridSize) * gridSize,
             position_y: Math.round(position.y / gridSize) * gridSize,
-          });
+          };
+          
+          const newItem = {
+            ...item,
+            ...newUpdate
+          };
+          
+          if (isValidPosition(newItem, layout, item.id)) {
+            onUpdate(newUpdate);
+          }
         }}
         minWidth={gridSize}
         minHeight={gridSize}
@@ -207,6 +254,7 @@ const LayoutItem = ({
         <ItemContainer
           isSelected={isSelected}
           itemType={item.type}
+          hasOverlap={!isValidPosition(item, layout, item.id)}
           onClick={(e) => {
             e.stopPropagation();
             onSelect();

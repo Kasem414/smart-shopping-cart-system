@@ -32,6 +32,32 @@ const Canvas = styled.div`
   height: 2000px;
 `;
 
+const checkOverlap = (rect1, rect2) => {
+  return !(rect1.x + rect1.width <= rect2.x ||
+           rect1.x >= rect2.x + rect2.width ||
+           rect1.y + rect1.height <= rect2.y ||
+           rect1.y >= rect2.y + rect2.height);
+};
+
+const isValidPosition = (newItem, layout, excludeId = null) => {
+  const newRect = {
+    x: newItem.position_x,
+    y: newItem.position_y,
+    width: newItem.width * 50, // using default gridSize
+    height: newItem.height * 50
+  };
+
+  return !layout.some(item => 
+    item.id !== excludeId && 
+    checkOverlap(newRect, {
+      x: item.position_x,
+      y: item.position_y,
+      width: item.width * 50,
+      height: item.height * 50
+    })
+  );
+};
+
 const LayoutCanvas = ({
   showGrid,
   gridSize,
@@ -51,9 +77,17 @@ const LayoutCanvas = ({
       const x = Math.round((offset.x - canvasRect.left) / gridSize) * gridSize;
       const y = Math.round((offset.y - canvasRect.top) / gridSize) * gridSize;
       
-      onAddItem(item, { x, y });
+      const newItem = {
+        ...item,
+        position_x: x,
+        position_y: y
+      };
+
+      if (isValidPosition(newItem, layout)) {
+        onAddItem(item, { x, y });
+      }
     },
-  }), [gridSize, onAddItem]);
+  }), [gridSize, onAddItem, layout]);
 
   const handleCanvasClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -79,6 +113,7 @@ const LayoutCanvas = ({
             onSelect={() => onSelectItem(item)}
             onUpdate={(updates) => onUpdateItem(item.id, updates)}
             onDelete={() => onDeleteItem(item.id)}
+            layout={layout}
           />
         ))}
       </Canvas>
