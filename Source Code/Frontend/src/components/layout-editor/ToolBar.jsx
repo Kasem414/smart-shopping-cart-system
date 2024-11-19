@@ -67,6 +67,7 @@ const ToolBar = ({
   onUndo,
   onRedo,
   onReset,
+  onPreview,
 }) => {
   return (
     <ToolBarWrapper>
@@ -103,6 +104,11 @@ const ToolBar = ({
       >
         <i className="bi bi-trash" />
         Reset
+      </Button>
+
+      <Button onClick={onPreview} style={{ marginLeft: '1rem' }}>
+        <i className="bi bi-eye" />
+        Preview
       </Button>
 
       <Button
