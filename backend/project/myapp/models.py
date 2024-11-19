@@ -182,3 +182,5 @@ class Component(models.Model):
     width = models.PositiveIntegerField()
     height = models.PositiveIntegerField()
     categories = models.JSONField(default=list)  # Storing categories as an array of strings
+    rotation = models.DecimalField(max_digits=17,decimal_places=14) 
+    

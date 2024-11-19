@@ -12,7 +12,7 @@ class ComponentSerializer(serializers.ModelSerializer):
         model = Component
         fields = [
             'id', 'type', 'position_x', 'position_y',
-            'width', 'height', 'categories'
+            'width', 'height','categories','rotation'
         ]
 
 class StoreLayoutSerializer(serializers.ModelSerializer):
