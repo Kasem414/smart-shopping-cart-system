@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import styled from 'styled-components';
 import { Rnd } from 'react-rnd';
 import ShelfCategoryModal from './components/ShelfCategoryModal';
@@ -210,6 +210,7 @@ const LayoutItem = ({
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
   const [rotation, setRotation] = useState(item.rotation || 0);
+  const currentRotation = useRef(item.rotation || 0);
   const containerRef = React.useRef(null);
 
   const handleDoubleClick = (e) => {
@@ -262,28 +263,19 @@ const LayoutItem = ({
     const centerY = rect.top + rect.height / 2;
     
     let angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI) + 90;
+    angle = ((angle % 360) + 360) % 360;
     
-    // Add damping to make rotation less sensitive
-    const dampingFactor = 0.8;
-    angle = angle * dampingFactor + rotation * (1 - dampingFactor);
+    // Snap to nearest 45 degrees
+    const snapAngle = (Math.round(angle / 15) * 15);
     
-    // Snap to nearest 45 degrees when within 5 degrees
-    const snapThreshold = 5;
-    const snapAngles = [0, 45, 90, 135, 180, -135, -90, -45];
-    
-    for (const snapAngle of snapAngles) {
-      if (Math.abs(angle - snapAngle) < snapThreshold) {
-        angle = snapAngle;
-        break;
-      }
-    }
-
-    setRotation(angle);
+    setRotation(snapAngle);
+    currentRotation.current = snapAngle;
   };
 
   const handleRotationEnd = () => {
     setIsRotating(false);
-    onUpdate({ rotation });
+    const normalizedRotation = ((currentRotation.current % 360) + 360) % 360;
+    onUpdate({ rotation: normalizedRotation });
   };
 
   React.useEffect(() => {

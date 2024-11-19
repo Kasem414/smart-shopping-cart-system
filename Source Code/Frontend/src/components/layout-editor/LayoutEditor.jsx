@@ -179,7 +179,7 @@ const LayoutEditor = () => {
       position_x: position.x,
       position_y: position.y,
       categories: item.type === 'shelf' ? [] : undefined,
-      rotation: 0,
+      rotation: item.rotation || 0,
     };
 
     setLayout(prev => {
@@ -188,6 +188,8 @@ const LayoutEditor = () => {
       return newLayout;
     });
   }, [addToHistory]);
+
+
 
   // update item in layout
   const handleUpdateItem = useCallback((id, updates) => {
@@ -200,6 +202,8 @@ const LayoutEditor = () => {
     });
   }, [addToHistory]);
 
+
+
   // delete item from layout
   const handleDeleteItem = useCallback((id) => {
     setLayout(prev => {
@@ -208,6 +212,8 @@ const LayoutEditor = () => {
       return newLayout;
     });
   }, [addToHistory]);
+
+
 
   // save layout to backend
   const handleSaveLayout = useCallback(async () => {
@@ -220,7 +226,7 @@ const LayoutEditor = () => {
           position_y: item.position_y,
           width: item.width,
           height: item.height,
-          rotation: item.rotation,
+          rotation: item.rotation || 0,
           categories: item.type === "shelf" ? item.categories : [],
         })),
         gridSize,
@@ -270,11 +276,15 @@ const LayoutEditor = () => {
     }
   }, [layout, gridSize]);
 
+
+
   const handleUndo = useCallback(() => {
     const previousState = undo();
     setLayout(previousState);
     setSelectedItem(null);
   }, [undo]);
+
+
 
   const handleRedo = useCallback(() => {
     const nextState = redo();
@@ -282,9 +292,13 @@ const LayoutEditor = () => {
     setSelectedItem(null);
   }, [redo]);
 
+
+
   const handleReset = useCallback(async () => {
     setShowResetConfirm(true);
   }, []);
+
+
 
   const confirmReset = async () => {
     try {
