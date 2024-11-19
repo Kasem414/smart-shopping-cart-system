@@ -289,6 +289,12 @@ const LayoutItem = ({
     };
   }, [isRotating]);
 
+  // Add useEffect to sync rotation with item prop changes
+  React.useEffect(() => {
+    setRotation(item.rotation || 0);
+    currentRotation.current = item.rotation || 0;
+  }, [item.rotation]);
+
   return (
     <>
       <Rnd
