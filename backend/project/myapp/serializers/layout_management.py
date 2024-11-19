@@ -7,7 +7,6 @@ class ComponentSerializer(serializers.ModelSerializer):
     categories = serializers.ListField(
         child=serializers.CharField(), required=False, default=[]
     )
-
     class Meta:
         model = Component
         fields = [
@@ -26,16 +25,6 @@ class StoreLayoutSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'store': {'read_only': True}
         }
-    # def create(self, validated_data):
-    #     # 
-    #     components_data = validated_data.pop('components',None)
-    #     store = validated_data.pop('store',None)
-    #     # Extract the 'store' field
-    #     layout = StoreLayout.objects.create(store=store,**validated_data)
-    #     # This to fix bug: Direct assignment to the reverse side of a related set is prohibited. 
-    #     if components_data:
-    #         layout.components.set(components_data)
-    #     return layout
         
     def update(self, instance, validated_data):
         components_data = validated_data.pop('components', [])
