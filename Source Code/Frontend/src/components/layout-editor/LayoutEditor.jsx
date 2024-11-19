@@ -6,6 +6,7 @@ import ComponentPalette from './ComponentPalette';
 import LayoutCanvas from './LayoutCanvas';
 import ToolBar from './ToolBar';
 import { useLayoutHistory } from './hooks/useLayoutHistory';
+import PreviewModal from './components/PreviewModal';
 
 const COMPONENT_ICONS = {
   shelf: 'bi bi-grid-3x3',
@@ -135,6 +136,7 @@ const LayoutEditor = () => {
   const [clipboard, setClipboard] = useState(null);
   const [message, setMessage] = useState({ text: '', success: false, visible: false });
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   //fetch layout from backend
   useEffect(() => {
@@ -380,7 +382,6 @@ const LayoutEditor = () => {
 
 
 
-
   return (
     <DndProvider backend={HTML5Backend}>
       <EditorContainer>
@@ -402,6 +403,7 @@ const LayoutEditor = () => {
             onUndo={handleUndo}
             onRedo={handleRedo}
             onReset={handleReset}
+            onPreview={() => setShowPreview(true)}
           />
         </ToolBarContainer>
         
@@ -436,6 +438,12 @@ const LayoutEditor = () => {
             </DialogContent>
           </DialogOverlay>
         )}
+        <PreviewModal
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          layout={layout}
+          gridSize={gridSize}
+        />
       </EditorContainer>
     </DndProvider>
   );
