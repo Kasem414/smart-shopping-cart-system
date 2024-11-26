@@ -32,6 +32,24 @@ import { Slide, Zoom } from "react-awesome-reveal";
 import { MagnifyingGlass } from "react-loader-spinner";
 import { UserContext } from "../contexts/UserContext";
 import { ShoppingListContext } from "../contexts/ShoppingListContext";
+import styled from 'styled-components';
+
+// Add the Message styled component
+const Message = styled.div`
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background-color: ${({ $success }) => ($success ? '#4caf50' : '#f44336')};
+  color: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  transition: opacity 0.3s ease;
+  opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
+  visibility: ${({ $isVisible }) => ($isVisible ? 'visible' : 'hidden')};
+  pointer-events: none;
+`;
 
 const Home = () => {
   const { user } = useContext(UserContext);
@@ -41,6 +59,7 @@ const Home = () => {
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState({ text: '', success: true, visible: false });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -208,8 +227,22 @@ const Home = () => {
     autoplaySpeed: 2000,
   };
 
+  // Helper function to show message
+  const showMessage = (text, success = true) => {
+    setMessage({ text, success, visible: true });
+    setTimeout(() => {
+      setMessage(prev => ({ ...prev, visible: false }));
+    }, 1500);
+  };
+
   return (
     <div>
+      <Message 
+        $success={message.success} 
+        $isVisible={message.visible}
+      >
+        {message.text}
+      </Message>
       <div>
         {loading ? (
           <div className="loader-container">
@@ -971,24 +1004,15 @@ const Home = () => {
                                       <button
                                         onClick={async () => {
                                           if (!user) {
-                                            alert(
-                                              "Please log in to add products to your shopping list."
-                                            );
+                                            showMessage("Please log in to add products to your shopping list.", false);
                                             return;
                                           }
                                           try {
-                                            const result = await addToList(
-                                              product.id
-                                            );
-                                            alert(result.message);
+                                            const result = await addToList(product.id);
+                                            showMessage(result.message, true);
                                           } catch (err) {
-                                            console.error(
-                                              "Failed to add product:",
-                                              err
-                                            );
-                                            setError(
-                                              "Failed to add product to shopping list"
-                                            );
+                                            console.error("Failed to add product:", err);
+                                            showMessage("Failed to add product to shopping list", false);
                                           }
                                         }}
                                         className={`btn ${

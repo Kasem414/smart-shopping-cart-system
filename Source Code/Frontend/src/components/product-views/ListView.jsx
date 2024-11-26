@@ -1,6 +1,6 @@
-import ViewStrategy from './ViewStrategy';
-import { Link } from 'react-router-dom';
-import styled from 'styled-components';
+import ViewStrategy from "./ViewStrategy";
+import { Link } from "react-router-dom";
+import styled from "styled-components";
 
 const ListContainer = styled.div`
   margin-top: 1rem;
@@ -39,13 +39,13 @@ const ProductCard = styled.div`
     color: #2c3e50;
     margin-bottom: 0.5rem;
     font-size: 1.15rem;
-    
+
     a {
       text-decoration: none;
       color: inherit;
-      
+
       &:hover {
-        color: #45930F;
+        color: #45930f;
       }
     }
   }
@@ -54,9 +54,9 @@ const ProductCard = styled.div`
     text-decoration: none;
     color: #6c757d;
     font-size: 0.8rem;
-    
+
     &:hover {
-      color: #45930F;
+      color: #45930f;
     }
   }
 
@@ -97,7 +97,7 @@ const ProductCard = styled.div`
   .add-button {
     transition: all 0.2s ease;
     font-size: 0.75rem;
-    
+
     &:hover {
       transform: translateY(-2px);
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -118,7 +118,7 @@ const ProductCard = styled.div`
 `;
 
 class ListView extends ViewStrategy {
-  render(products, categories, user, addToList, setError) {
+  render(products, categories, user, addToList, setError, showMessage) {
     return (
       <ListContainer>
         {products.map((product) => (
@@ -128,7 +128,7 @@ class ListView extends ViewStrategy {
                 <div className="image-container">
                   <Link to={`/product-details/${product.id}`}>
                     <img
-                      src={product.image}
+                      src={product.image ? product.image : product.get_image}
                       alt={product.name}
                       className="product-image"
                     />
@@ -148,11 +148,14 @@ class ListView extends ViewStrategy {
                   </div>
 
                   {/* Category */}
-                  <Link 
+                  <Link
                     to={`/category/${product.category}`}
                     className="category-link"
                   >
-                    {categories.find((cat) => cat.id === product.category)?.name}
+                    {
+                      categories.find((cat) => cat.id === product.category)
+                        ?.name
+                    }
                   </Link>
 
                   {/* Title */}
@@ -163,16 +166,12 @@ class ListView extends ViewStrategy {
                   </h2>
 
                   {/* Description */}
-                  <p className="product-description">
-                    {product.description}
-                  </p>
+                  <p className="product-description">{product.description}</p>
 
                   {/* Price and Action */}
                   <div className="d-flex justify-content-between align-items-center">
                     <div className="price-container">
-                      <span className="current-price">
-                        ${product.price}
-                      </span>
+                      <span className="current-price">${product.price}</span>
                       {product.old_price && (
                         <>
                           <span className="old-price">
@@ -183,7 +182,8 @@ class ListView extends ViewStrategy {
                               ((product.old_price - product.price) /
                                 product.old_price) *
                                 100
-                            )}% OFF
+                            )}
+                            % OFF
                           </span>
                         </>
                       )}
@@ -193,15 +193,17 @@ class ListView extends ViewStrategy {
                       className="btn btn-primary add-button"
                       onClick={async () => {
                         if (!user) {
-                          alert("Please log in to add products to your shopping list.");
+                          showMessage(
+                            "Please log in to add products to your shopping list."
+                          );
                           return;
                         }
                         try {
                           const result = await addToList(product.id);
-                          alert(result.message);
+                          showMessage(result.message);
                         } catch (err) {
                           console.error("Failed to add product:", err);
-                          setError("Failed to add product to shopping list");
+                          showMessage("Failed to add product to shopping list");
                         }
                       }}
                       disabled={!user || user.account_type !== "customer"}
