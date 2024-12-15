@@ -7,8 +7,9 @@ class ViewContext {
     this._strategy = strategy;
   }
 
-  executeStrategy(products, categories, user, addToList, setError) {
-    return this._strategy.render(products, categories, user, addToList, setError);
+
+  executeStrategy(products, categories, user, addToList, setError, showMessage) {
+    return this._strategy.render(products, categories, user, addToList, setError, showMessage);
   }
 }
 

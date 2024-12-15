@@ -6,13 +6,28 @@ import { ShoppingListContext } from "../contexts/ShoppingListContext";
 // import '@fortawesome/fontawesome-free/css/all.min.css';
 
 import ScrollToTop from "../layout/ScrollToTop";
-import GridView from '../product-views/GridView';
-import ListView from '../product-views/ListView';
-import ViewContext from '../product-views/ViewContext';
+import GridView from "../product-views/GridView";
+import ListView from "../product-views/ListView";
+import ViewContext from "../product-views/ViewContext";
 
-import styled from 'styled-components';
+import styled from "styled-components";
 
-// Add these styled components at the top level
+// Add the Message styled component
+const Message = styled.div`
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background-color: ${({ $success }) => ($success ? "#4caf50" : "#f44336")};
+  color: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  transition: opacity 0.3s ease;
+  opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
+  visibility: ${({ $isVisible }) => ($isVisible ? "visible" : "hidden")};
+  pointer-events: none;
+`;
 const SortingContainer = styled.div`
   position: relative;
   display: inline-flex;
@@ -104,8 +119,8 @@ const ViewToggle = styled.div`
   button {
     padding: 0.5rem;
     border: 1px solid #e2e8f0;
-    background: ${props => props.active ? '#f1f5f9' : '#fff'};
-    color: ${props => props.active ? '#0f172a' : '#64748b'};
+    background: ${(props) => (props.active ? "#f1f5f9" : "#fff")};
+    color: ${(props) => (props.active ? "#0f172a" : "#64748b")};
     border-radius: 0.375rem;
     transition: all 0.2s ease-in-out;
 
@@ -127,30 +142,49 @@ function ProductList() {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]); // Add products state
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [viewContext] = useState(new ViewContext(new GridView()));
-  const [viewMode, setViewMode] = useState('grid');
+  const [viewMode, setViewMode] = useState("grid");
+  const [message, setMessage] = useState({
+    text: "",
+    success: true,
+    visible: false,
+  });
+
+  // Helper function to show message
+  const showMessage = (text, success = true) => {
+    setMessage({ text, success, visible: true });
+    setTimeout(() => {
+      setMessage((prev) => ({ ...prev, visible: false }));
+    }, 1500);
+  };
 
   // Add new state for sorting
-  const [sortOption, setSortOption] = useState('default');
+  const [sortOption, setSortOption] = useState("default");
   const [isSorting, setIsSorting] = useState(false);
 
   // Add sorting function
   const getSortedProducts = (products) => {
     switch (sortOption) {
-      case 'price-low-high':
-        return [...products].sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-      case 'price-high-low':
-        return [...products].sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-      case 'name-asc':
+      case "price-low-high":
+        return [...products].sort(
+          (a, b) => parseFloat(a.price) - parseFloat(b.price)
+        );
+      case "price-high-low":
+        return [...products].sort(
+          (a, b) => parseFloat(b.price) - parseFloat(a.price)
+        );
+      case "name-asc":
         return [...products].sort((a, b) => a.name.localeCompare(b.name));
-      case 'name-desc':
+      case "name-desc":
         return [...products].sort((a, b) => b.name.localeCompare(a.name));
-      case 'featured':
-        return [...products].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
-      case 'default':
+      case "featured":
+        return [...products].sort(
+          (a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0)
+        );
+      case "default":
       default:
         return products; // Return original order
     }
@@ -204,7 +238,7 @@ function ProductList() {
 
   const handleSearch = async (query) => {
     setSearchQuery(query);
-    
+
     if (!query.trim()) {
       setSearchResults(products);
       setIsSearching(false);
@@ -212,19 +246,19 @@ function ProductList() {
     }
 
     try {
-      setError(null)
+      setError(null);
       setIsSearching(true);
       const token = localStorage.getItem("access_token");
       const response = await fetch(
         `http://127.0.0.1:8000/search/?query=${encodeURIComponent(query)}`,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
       );
-      
+
       if (!response.ok) {
         throw new Error(`Search failed with status: ${response.status}`);
       }
@@ -233,8 +267,8 @@ function ProductList() {
       setSearchResults(data);
       setCurrentPage(1);
     } catch (error) {
-      console.error('Search failed:', error);
-      setError('Failed to perform search');
+      console.error("Search failed:", error);
+      // setError("Failed to perform search");
       setSearchResults([]);
     } finally {
       setIsSearching(false);
@@ -253,10 +287,7 @@ function ProductList() {
     };
   };
 
-  const debouncedSearch = React.useCallback(
-    debounce(handleSearch, 300),
-    []
-  );
+  const debouncedSearch = React.useCallback(debounce(handleSearch, 300), []);
 
   const displayProducts = searchQuery ? searchResults : products;
   const sortedProductsMemo = useMemo(() => {
@@ -267,12 +298,12 @@ function ProductList() {
     indexOfLastProduct
   );
   console.log(displayProducts);
-  
+
   const totalPages = Math.ceil(displayProducts.length / productsPerPage);
 
   const handleViewChange = (mode) => {
     setViewMode(mode);
-    viewContext.setStrategy(mode === 'grid' ? new GridView() : new ListView());
+    viewContext.setStrategy(mode === "grid" ? new GridView() : new ListView());
   };
 
   // Add sort handler
@@ -281,7 +312,7 @@ function ProductList() {
     setIsSorting(true);
     setSortOption(newSortOption);
     setCurrentPage(1);
-    
+
     // Use setTimeout to allow the UI to update before heavy sorting
     setTimeout(() => {
       setIsSorting(false);
@@ -311,6 +342,9 @@ function ProductList() {
           </>
 
           <div className="container ">
+            <Message $success={message.success} $isVisible={message.visible}>
+              {message.text}
+            </Message>
             <div className="row">
               {/* Left */}
               <div className="col-md-3 mt-4">
@@ -331,16 +365,17 @@ function ProductList() {
                     />
                     {isSearching && (
                       <div className="position-absolute top-50 end-0 translate-middle-y me-2">
-                        <div className="spinner-border spinner-border-sm text-primary" role="status">
+                        <div
+                          className="spinner-border spinner-border-sm text-primary"
+                          role="status"
+                        >
                           <span className="visually-hidden">Searching...</span>
                         </div>
                       </div>
                     )}
                   </div>
                   {error && (
-                    <div className="text-danger small mt-2">
-                      {error}
-                    </div>
+                    <div className="text-danger small mt-2">{error}</div>
                   )}
                 </div>
 
@@ -348,16 +383,17 @@ function ProductList() {
                 <div className="py-4">
                   <h5 className="mb-3 mt-6">Categories</h5>
                   <ul className="nav flex-column">
-                    {Array.isArray(categories) && categories.map((category, index) => (
-                      <li className="nav-item" key={category._id || index}>
-                        <Link
-                          className="nav-link"
-                          to={`/category/${category._id}`}
-                        >
-                          {category.name}
-                        </Link>
-                      </li>
-                    ))}
+                    {Array.isArray(categories) &&
+                      categories.map((category, index) => (
+                        <li className="nav-item" key={category._id || index}>
+                          <Link
+                            className="nav-link"
+                            to={`/category/${category._id}`}
+                          >
+                            {category.name}
+                          </Link>
+                        </li>
+                      ))}
                   </ul>
                 </div>
               </div>
@@ -369,10 +405,9 @@ function ProductList() {
                   <div>
                     <p className="mb-3 mb-md-0">
                       <span className="text-dark">
-                        {searchQuery 
+                        {searchQuery
                           ? `${searchResults.length} results for "${searchQuery}"`
-                          : `${products.length} Products found`
-                        }
+                          : `${products.length} Products found`}
                       </span>
                     </p>
                   </div>
@@ -382,23 +417,22 @@ function ProductList() {
                     <ToolbarContainer>
                       <ViewToggle>
                         <button
-                          className={viewMode === 'grid' ? 'active' : ''}
-                          onClick={() => handleViewChange('grid')}
+                          className={viewMode === "grid" ? "active" : ""}
+                          onClick={() => handleViewChange("grid")}
                         >
                           <i className="bi bi-grid"></i>
                         </button>
                         <button
-                          className={viewMode === 'list' ? 'active' : ''}
-                          onClick={() => handleViewChange('list')}
+                          className={viewMode === "list" ? "active" : ""}
+                          onClick={() => handleViewChange("list")}
                         >
                           <i className="bi bi-list"></i>
                         </button>
                       </ViewToggle>
 
-
                       <select
                         className="form-select"
-                        style={{ width: 'auto', minWidth: '120px' }}
+                        style={{ width: "auto", minWidth: "120px" }}
                         value={productsPerPage}
                         onChange={(e) => {
                           setProductsPerPage(Number(e.target.value));
@@ -423,20 +457,24 @@ function ProductList() {
                           <option value="name-asc">Name: A to Z</option>
                           <option value="name-desc">Name: Z to A</option>
                         </SortSelect>
-                        
+
                         {isSorting ? (
                           <LoadingSpinner>
-                            <div className="spinner-border spinner-border-sm text-primary" 
-                                 role="status" 
-                                 style={{ width: '16px', height: '16px' }}>
-                              <span className="visually-hidden">Sorting...</span>
+                            <div
+                              className="spinner-border spinner-border-sm text-primary"
+                              role="status"
+                              style={{ width: "16px", height: "16px" }}
+                            >
+                              <span className="visually-hidden">
+                                Sorting...
+                              </span>
                             </div>
                           </LoadingSpinner>
                         ) : (
-                          sortOption !== 'default' && (
+                          sortOption !== "default" && (
                             <ClearButton
                               onClick={() => {
-                                setSortOption('default');
+                                setSortOption("default");
                                 setCurrentPage(1);
                               }}
                               title="Clear sorting"
@@ -459,15 +497,15 @@ function ProductList() {
                 )}
 
                 {/* Render current view */}
-                {currentProducts.length > 0 && (
+                {currentProducts.length > 0 &&
                   viewContext.executeStrategy(
                     currentProducts,
                     categories,
                     user,
                     addToList,
-                    setError
-                  )
-                )}
+                    setError,
+                    showMessage
+                  )}
 
                 {/* Pagination */}
                 {totalPages > 1 && (
