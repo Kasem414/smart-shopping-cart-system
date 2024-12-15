@@ -7,6 +7,8 @@ from rest_framework.routers import DefaultRouter
 from .views.shoppinglist_management import ProductViewSet, ShoppingListViewSet
 from .views.product_search import ProductSearchView
 from .views.layout_management import StoreLayoutView
+from .views.pathfinding import ShortestPathView, ShoppingListPathView
+from .views.visulaize_layout import StoreLayoutVisualizeView
 # from .views.store_management import StoreUpdateView,StoreListView
 
 router = DefaultRouter()
@@ -48,5 +50,9 @@ urlpatterns = [
     # Endpoint for store management
     # path("store/<int:pk>/",StoreUpdateView.as_view() , name=""),
     # path("store/",StoreListView.as_view() , name=""),
+    # Endpoint for Navigation & Pathfinding
+    path('shortest-path/<int:product_id>/', ShortestPathView.as_view(), name='shortest-path'),
+    path('shopping-list-path/', ShoppingListPathView.as_view(), name='shopping-list-path'),
+    path('store/<int:store_id>/layout/', StoreLayoutVisualizeView.as_view(), name='store-layout-visualization'),
 ]
 
