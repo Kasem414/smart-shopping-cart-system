@@ -53,6 +53,6 @@ urlpatterns = [
     # Endpoint for Navigation & Pathfinding
     path('shortest-path/<int:product_id>/', ShortestPathView.as_view(), name='shortest-path'),
     path('shopping-list-path/', ShoppingListPathView.as_view(), name='shopping-list-path'),
-    path('store/<int:store_id>/layout/', StoreLayoutVisualizeView.as_view(), name='store-layout-visualization'),
+    path('store/layout/', StoreLayoutVisualizeView.as_view(), name='store-layout-visualization'),
 ]
 
