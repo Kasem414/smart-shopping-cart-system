@@ -13,6 +13,8 @@ import ProductDetails from './components/pages/ProductDetails';
 import ShoppingList from './components/pages/ShoppingList';
 import { UserProvider } from './components/contexts/UserContext';
 import { ShoppingListProvider } from './components/contexts/ShoppingListContext';
+import ProductPathfinding from './components/pathfinding/ProductPathfinding';
+import ShoppingListPath from './components/pathfinding/ShoppingListPath';
 const AppContent = () => {
 
   return (
@@ -28,6 +30,8 @@ const AppContent = () => {
         <Route path="/product-details" element={<ProductDetails />} />
         <Route path="/shopping-list" element={<ShoppingList />} />
         <Route path="/product-details/:productId" element={<ProductDetails />} />
+        <Route path="/product-location/:productId" element={<ProductPathfinding />} />
+        <Route path="/shopping-route" element={<ShoppingListPath />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
       <Footer />
