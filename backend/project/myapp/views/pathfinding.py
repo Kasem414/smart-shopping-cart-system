@@ -18,7 +18,8 @@ class ShortestPathView(APIView):
     def get(self, request, product_id):
         # الحصول على المتجر الذي يحتوي المنتج 
         product = get_object_or_404(Product,id=product_id)
-        store = product.store_id
+        # store = product.store_id
+        store = Store.objects.get(id=1)
         # التأكد من وجود خريطة المتجر (StoreLayout) أو إرسال خطأ إذا لم تكن موجودة
         layout = get_object_or_404(StoreLayout, store=store)
         grid_size = layout.grid_size  # حجم شبكة الخريطة
@@ -40,10 +41,21 @@ class ShortestPathView(APIView):
                     grid[x][y] = 1
         
         # Retrieve the component representing the category
-        # Convert category name to a string and check if it exists in the categories field
         category_name = product.category.name.capitalize()
-        components = Component.objects.filter(layout=layout,categories__contains = [category_name])
+        components = Component.objects.filter(layout=layout,categories__contains = category_name)
+        # Try case-insensitive
+        components = Component.objects.filter(layout=layout,categories__icontains= category_name)
         # Check if there are matching components
+        # if no match found , try without capitalization
+        if not components.exists():
+            category_name = product.category.name # Use original case
+            components = Component.objects.filter(layout=layout,categories__icontains= category_name)
+            # return Response({"detail": f"No component matches the category '{category_name}'"},status=status.HTTP_404_NOT_FOUND)
+        # If still no match, try lowercase 
+        if not components.exists():
+            category_name = product.category.name.lower() 
+            components = Component.objects.filter(layout=layout,categories__icontains= category_name)
+            # return Response({"detail": f"No component matches the category '{category_name}'"},status=status.HTTP_404_NOT_FOUND)
         if not components.exists():
             return Response({"detail": f"No component matches the category '{category_name}'"},status=status.HTTP_404_NOT_FOUND)
         category_component = components.first()
@@ -54,7 +66,9 @@ class ShortestPathView(APIView):
         # تعريف نقطة البداية (مدخل المتجر) ونقطة الهدف (موقع المنتج)
         entrance = Component.objects.filter(type="entrance",layout=layout).first()
         if entrance:
-            start = (entrance.position_x,entrance.position_y)  # مدخل المتجر
+            center_x = (entrance.position_x + entrance.width) // 2
+            center_y = entrance.position_y + entrance.height // 2
+            start = (center_x,center_y)  # مدخل المتجر
         else:
             return Response({"details":"You Should drag and drop entrance component on your layout!"},status=status.HTTP_400_BAD_REQUEST)
         goal = product_location  # موقع المنتج
