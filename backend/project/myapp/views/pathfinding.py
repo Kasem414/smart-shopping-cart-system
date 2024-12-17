@@ -60,13 +60,13 @@ class ShortestPathView(APIView):
             return Response({"detail": f"No component matches the category '{category_name}'"},status=status.HTTP_404_NOT_FOUND)
         category_component = components.first()
         # Set product location based on the component's position
-        product_location = (category_component.position_x, category_component.position_y)
+        product_location = (category_component.position_x, category_component.position_y // 2)
         # for row in grid:
         #     assert all(cell in [0,1] for cell in row),"Invalid grid value"
         # تعريف نقطة البداية (مدخل المتجر) ونقطة الهدف (موقع المنتج)
         entrance = Component.objects.filter(type="entrance",layout=layout).first()
         if entrance:
-            center_x = (entrance.position_x + entrance.width) // 2
+            center_x = (entrance.position_x + entrance.width) * 2
             center_y = entrance.position_y + entrance.height // 2
             start = (center_x,center_y)  # مدخل المتجر
         else:
