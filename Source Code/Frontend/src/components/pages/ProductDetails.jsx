@@ -1,6 +1,6 @@
 // src/ProductDetails.js
 import React, { useState, useEffect, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { MagnifyingGlass } from "react-loader-spinner";
 import { UserContext } from "../contexts/UserContext";
 import { ShoppingListContext } from "../contexts/ShoppingListContext";
@@ -208,6 +208,16 @@ const ProductDetails = () => {
                       </tr>
                     </tbody>
                   </table>
+
+                  <div className="mt-4">
+                    <Link 
+                      to={`/product-location/${product.id}`}
+                      className="btn btn-primary d-flex align-items-center gap-2 w-100 justify-content-center"
+                    >
+                      <i className="bi bi-map-fill"></i>
+                      Find in Store
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
