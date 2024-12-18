@@ -58,20 +58,17 @@ class ShortestPathView(APIView):
             # return Response({"detail": f"No component matches the category '{category_name}'"},status=status.HTTP_404_NOT_FOUND)
         if not components.exists():
             return Response({"detail": f"No component matches the category '{category_name}'"},status=status.HTTP_404_NOT_FOUND)
-        category_component = components.first()
-        # Set product location based on the component's position
-        product_location = (category_component.position_x, category_component.position_y // 2)
+        # category_component = components
         # for row in grid:
         #     assert all(cell in [0,1] for cell in row),"Invalid grid value"
         # تعريف نقطة البداية (مدخل المتجر) ونقطة الهدف (موقع المنتج)
         entrance = Component.objects.filter(type="entrance",layout=layout).first()
         if entrance:
-            center_x = (entrance.position_x + entrance.width) * 2
-            center_y = entrance.position_y + entrance.height // 2
-            start = (center_x,center_y)  # مدخل المتجر
+                center_x = entrance.position_x+ (entrance.width*25) 
+                center_y = entrance.position_y + entrance.height // 2
+                start = (center_x,center_y)  # مدخل المتجر
         else:
             return Response({"details":"You Should drag and drop entrance component on your layout!"},status=status.HTTP_400_BAD_REQUEST)
-        goal = product_location  # موقع المنتج
         """
         # start = (0,0)  
         # assert 0 <= 0 < len(grid) and 0 <= 0 < len(grid[0]), "Start position out of bounds"
@@ -137,16 +134,27 @@ class ShortestPathView(APIView):
 
         #     if grid[goal[0]][goal[1]] != 0:
         #         raise ValueError(f"Goal position {goal} is not walkable after grid extension.")
-        grid=extend_grid(grid=grid,start=start,goal=goal)    
-        # extend_and_find_path(grid=grid,start=start,goal=goal)
-        pathfinding_context = PathfindingContext(AStarPathfinding())  # تعيين الاستراتيجية
-        path = pathfinding_context.calculate_path(grid, start, goal)  # حساب المسار
-        # في حالة عدم وجود مسار صالح، إرسال رسالة خطأ
-        if not path:
-            return Response({"error": "No path available"}, status=status.HTTP_400_BAD_REQUEST)
+        # Initialize variables to store the smallest path
+        smallest_path = None
+        smallest_path_length = float('inf') # Set initial value to infinity
+        # Iterate through all components to find the goal position
+        for component in components:
+        # Set product location based on the component's position
+            product_location = (component.position_x, component.position_y)
+            goal = product_location  # موقع المنتج
+            grid=extend_grid(grid=grid,start=start,goal=goal)    
+            # extend_and_find_path(grid=grid,start=start,goal=goal)
+            pathfinding_context = PathfindingContext(AStarPathfinding())  # تعيين الاستراتيجية
+            path = pathfinding_context.calculate_path(grid, start, goal)  # حساب المسار
+            # في حالة عدم وجود مسار صالح، إرسال رسالة خطأ
+            if not path:
+                return Response({"error": "No path available"}, status=status.HTTP_400_BAD_REQUEST)
+            if len(path) < smallest_path_length:
+                smallest_path = path # Update the smallest path
+                smallest_path_length = len(path)
         # validate_path(grid,path,start,goal)
         # إرسال المسار كاستجابة JSON
-        return Response({"path": path}, status=status.HTTP_200_OK)
+        return Response({"path": smallest_path}, status=status.HTTP_200_OK)
 
 class ShoppingListPathView(APIView):
     """
