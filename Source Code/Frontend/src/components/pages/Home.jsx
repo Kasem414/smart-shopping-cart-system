@@ -205,6 +205,12 @@ const Home = () => {
 
         setCategories(categoriesData);
         setProducts(productsData);
+        setLayout(layoutData.items.map(item => ({
+          ...item,
+          id: `${item.type}-${item.id}`,
+          icon: COMPONENT_ICONS[item.type] || 'bi bi-box'
+        })));
+        setGridSize(layoutData.gridSize);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
