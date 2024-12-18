@@ -223,7 +223,7 @@ const ProductManagement = () => {
       setIsEditing(false);
       setEditingProduct(null);
       setCategory("");
-      // handleCloseForm();
+      handleCloseForm();
     } catch (error) {
       console.error("Error editing product:", error);
       if (error.response) {

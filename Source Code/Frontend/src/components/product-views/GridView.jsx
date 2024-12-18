@@ -114,7 +114,7 @@ class GridView extends ViewStrategy {
                   </div>
 
                   {/* Product Image */}
-                  <Link to={`/product/${product.id}`}>
+                  <Link to={`/product-details/${product.id}`}>
                     <img
                       src={product.image ? product.image : product.get_image}
                       alt={product.name}
@@ -138,7 +138,7 @@ class GridView extends ViewStrategy {
 
                 {/* Product Title */}
                 <h2 className="product-title fs-6">
-                  <Link to={`/product/${product.id}`}>{product.name}</Link>
+                  <Link to={`/product-details/${product.id}`}>{product.name}</Link>
                 </h2>
 
                 {/* Product Price */}
