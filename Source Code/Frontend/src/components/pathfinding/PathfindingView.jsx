@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, memo } from "react";
 import styled from "styled-components";
-import axios from "axios";
 
 const ViewContainer = styled.div`
   width: 100%;
-  height: 100vh;
+  height: 100%;
   background: #f1f5f9;
-  padding: 1rem;
   position: relative;
   overflow: hidden;
 `;
@@ -102,6 +100,30 @@ const LoadingOverlay = styled.div`
   z-index: 1000;
 `;
 
+const Legend = styled.div`
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+`;
+
+const LegendItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+`;
+
+const LegendColor = styled.div`
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  background: ${(props) => props.color};
+  border: 2px solid ${(props) => props.borderColor};
+`;
+
 const getCategoryColor = (index) => {
   const colors = [
     "#3b82f6",
@@ -114,63 +136,9 @@ const getCategoryColor = (index) => {
   return colors[index % colors.length];
 };
 
-const PathfindingView = ({ productId, isShoppingList = false }) => {
-  const [layout, setLayout] = useState(null);
-  const [path, setPath] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchLayoutAndPath = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem('access_token');
-        
-        if (!token) {
-          setError('Please log in to view the shopping route');
-          setLoading(false);
-          return;
-        }
-
-        // Fetch store layout
-        const layoutResponse = await axios.get('http://127.0.0.1:8000/store/layout/', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-
-        setLayout(layoutResponse.data);
-
-        // Fetch path based on whether it's a shopping list or single product
-        const pathEndpoint = isShoppingList 
-          ? 'http://127.0.0.1:8000/shopping-list-path/'
-          : `http://127.0.0.1:8000/shortest-path/${productId}/`;
-
-        const pathResponse = await axios.get(pathEndpoint, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        
-        if (pathResponse.data.error) {
-          setError(pathResponse.data.error);
-        } else {
-          setPath(pathResponse.data.path);
-          console.log(pathResponse.data.path);
-        }
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError(err.response?.data?.error || err.message || 'Failed to load path');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLayoutAndPath();
-  }, [productId, isShoppingList]);
-
+const PathfindingView = React.memo(({ layout, path }) => {
   const renderPath = () => {
-    if (!path) return null;
+    if (!path || !Array.isArray(path) || path.length === 0) return null;
 
     return (
       <svg
@@ -184,7 +152,7 @@ const PathfindingView = ({ productId, isShoppingList = false }) => {
         }}
       >
         <path
-          d={`M ${path.map(([x, y]) => `${x} ${y}`).join(" L ")}`}
+          d={`M ${path.map(point => `${point.x} ${point.y}`).join(" L ")}`}
           stroke="#ef4444"
           strokeWidth="3"
           fill="none"
@@ -195,10 +163,15 @@ const PathfindingView = ({ productId, isShoppingList = false }) => {
         {/* Add markers for start and end points */}
         {path.length > 0 && (
           <>
-            <circle cx={path[0][0]} cy={path[0][1]} r="5" fill="#10b981" />
+            <circle 
+              cx={path[0].x} 
+              cy={path[0].y} 
+              r="5" 
+              fill="#10b981" 
+            />
             <circle
-              cx={path[path.length - 1][0]}
-              cy={path[path.length - 1][1]}
+              cx={path[path.length - 1].x}
+              cy={path[path.length - 1].y}
               r="5"
               fill="#ef4444"
             />
@@ -208,28 +181,38 @@ const PathfindingView = ({ productId, isShoppingList = false }) => {
     );
   };
 
-  if (loading) {
-    return (
-      <LoadingOverlay>
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </LoadingOverlay>
-    );
-  }
-
-  if (error) {
-    return <div className="alert alert-danger">Error: {error}</div>;
-  }
-
-  if (!layout) {
-    return <div className="alert alert-warning">No layout data available</div>;
+  if (!layout || !path) {
+    console.log('Missing required props:', { layout, path });
+    return null;
   }
 
   return (
     <ViewContainer>
+      <Legend>
+        <LegendItem>
+          <LegendColor color="#f5f3ff" borderColor="#9163cb" />
+          <span>Shelf</span>
+        </LegendItem>
+        <LegendItem>
+          <LegendColor color="#ecfdf5" borderColor="#10b981" />
+          <span>Entrance</span>
+        </LegendItem>
+        <LegendItem>
+          <LegendColor color="#fff7ed" borderColor="#f97316" />
+          <span>Checkout Counter</span>
+        </LegendItem>
+        <LegendItem>
+          <LegendColor color="#f3f4f6" borderColor="#9ca3af" />
+          <span>Aisle</span>
+        </LegendItem>
+        <LegendItem>
+          <LegendColor color="#E74242" borderColor="#E74242" isPath />
+          <span>Suggested Path</span>
+        </LegendItem>
+      </Legend>
+
       <Canvas>
-        {layout.items.map((item) => (
+        {layout.items?.map((item) => (
           <LayoutItem
             key={item.id}
             itemType={item.type}
@@ -267,6 +250,6 @@ const PathfindingView = ({ productId, isShoppingList = false }) => {
       </Canvas>
     </ViewContainer>
   );
-};
+});
 
 export default PathfindingView;
