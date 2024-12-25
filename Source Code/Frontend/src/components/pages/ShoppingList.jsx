@@ -5,7 +5,7 @@ import ScrollToTop from "../layout/ScrollToTop";
 import axios from "axios";
 import { UserContext } from "../contexts/UserContext";
 import { ShoppingListContext } from "../contexts/ShoppingListContext";
-import ShoppingListPath from "../pathfinding/ShoppingListPath";
+import ShoppingListPathModal from "../pathfinding/ShoppingListPathModal";
 
 const ShoppingList = () => {
   const { user } = useContext(UserContext);
@@ -13,7 +13,9 @@ const ShoppingList = () => {
   const [loaderStatus, setLoaderStatus] = useState(true);
   const [error, setError] = useState(null);
   const [updatingItems, setUpdatingItems] = useState({});
-  const [showPath, setShowPath] = useState(false);
+  const [isPathModalOpen, setIsPathModalOpen] = useState(false);
+  const [isPathLoading, setIsPathLoading] = useState(false);
+  const [pathError, setPathError] = useState(null);
   const [pathData, setPathData] = useState(null);
   const [storeLayout, setStoreLayout] = useState({ items: [], gridSize: 50 });
 
@@ -37,6 +39,65 @@ const ShoppingList = () => {
   }, [user]);
 
   useEffect(() => {}, [shoppingList]);
+
+  useEffect(() => {
+    const prefetchData = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        if (!token) return;
+
+        // Check cache first
+        const cacheKey = `shopping-path-${shoppingList.id}`;
+        const cachedPath = localStorage.getItem(cacheKey);
+        let pathDataFromCache = null;
+
+        if (cachedPath && !isPathModalOpen) {
+          // Don't use cache if modal is open
+          const parsedCache = JSON.parse(cachedPath);
+          const cacheTimestamp = parsedCache.timestamp;
+          const now = Date.now();
+
+          if (now - cacheTimestamp < 5 * 60 * 1000) {
+            pathDataFromCache = parsedCache.path;
+          }
+        }
+
+        // Fetch both layout and path data in parallel
+        const [layoutRes, pathRes] = await Promise.all([
+          axios.get("http://127.0.0.1:8000/store/layout/", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          !pathDataFromCache
+            ? axios.get("http://127.0.0.1:8000/shopping-list-path/", {
+                headers: { Authorization: `Bearer ${token}` },
+              })
+            : Promise.resolve({ data: { path: pathDataFromCache } }),
+        ]);
+
+        setStoreLayout(layoutRes.data);
+
+        if (!pathDataFromCache) {
+          const transformedPath = pathRes.data.path.map(([x, y]) => ({ x, y }));
+          localStorage.setItem(
+            cacheKey,
+            JSON.stringify({
+              path: transformedPath,
+              timestamp: Date.now(),
+            })
+          );
+          setPathData(transformedPath);
+        } else {
+          setPathData(pathDataFromCache);
+        }
+      } catch (err) {
+        console.error("Failed to prefetch data:", err);
+      }
+    };
+
+    if (shoppingList.id) {
+      prefetchData();
+    }
+  }, [shoppingList.id, shoppingList.items, isPathModalOpen]); // Added isPathModalOpen dependency
 
   const updateQuantity = async (productId, newQuantity) => {
     if (newQuantity < 1) return;
@@ -95,14 +156,52 @@ const ShoppingList = () => {
   const removeFromShoppingList = async (productId) => {
     try {
       const token = localStorage.getItem("access_token");
-      const response = await axios.delete(
+      await axios.delete(
         `http://127.0.0.1:8000/shopping-lists/${shoppingList.id}/remove-from-list/${productId}/`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
+      // Clear the cached path since the shopping list has changed
+      localStorage.removeItem(`shopping-path-${shoppingList.id}`);
+
+      const cacheKey = `shopping-path-${shoppingList.id}`;
+      // Reset path data and fetch new path
+      setPathData(null);
+
+      // Fetch new shopping list data
       await fetchShoppingList();
+
+      // If modal is open, fetch new path immediately
+      if (isPathModalOpen) {
+        try {
+          setIsPathLoading(true);
+          const pathRes = await axios.get(
+            "http://127.0.0.1:8000/shopping-list-path/",
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+
+          const transformedPath = pathRes.data.path.map(([x, y]) => ({ x, y }));
+          setPathData(transformedPath);
+
+          // Update cache with new path
+          localStorage.setItem(
+            cacheKey,
+            JSON.stringify({
+              path: transformedPath,
+              timestamp: Date.now(),
+            })
+          );
+        } catch (err) {
+          console.error("Failed to update path:", err);
+          setPathError("Failed to update shopping path.");
+        } finally {
+          setIsPathLoading(false);
+        }
+      }
     } catch (err) {
       setError("Failed to remove product from shopping list.");
     }
@@ -128,55 +227,60 @@ const ShoppingList = () => {
 
   const fetchShoppingPath = async () => {
     try {
+      setIsPathLoading(true);
+      setPathError(null);
+      setIsPathModalOpen(true);
+
       const token = localStorage.getItem("access_token");
 
-      // Fetch both layout and path data
-      const [layoutRes, pathRes] = await Promise.all([
-        axios.get("http://127.0.0.1:8000/store/layout/", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("http://127.0.0.1:8000/shopping-list-path/", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
+      // Check cache first
+      const cacheKey = `shopping-path-${shoppingList.id}`;
+      const cachedPath = localStorage.getItem(cacheKey);
 
-      // Transform path data into the format expected by ShoppingListPath
+      if (cachedPath) {
+        const parsedPath = JSON.parse(cachedPath);
+        const cacheTimestamp = parsedPath.timestamp;
+        const now = Date.now();
+
+        // Use cache if it's less than 5 minutes old
+        if (now - cacheTimestamp < 5 * 60 * 1000) {
+          setPathData(parsedPath.path);
+          setIsPathLoading(false);
+          return;
+        }
+      }
+
+      // Fetch new path if cache is invalid or expired
+      const pathRes = await axios.get(
+        "http://127.0.0.1:8000/shopping-list-path/",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const transformedPath = pathRes.data.path.map(([x, y]) => ({ x, y }));
-
-      setStoreLayout(layoutRes.data);
+      // Update cache
+      localStorage.setItem(
+        cacheKey,
+        JSON.stringify({
+          path: transformedPath,
+          timestamp: Date.now(),
+        })
+      );
       setPathData(transformedPath);
-      setShowPath(true);
     } catch (err) {
       console.error("Failed to fetch shopping path:", err);
-      setError("Failed to generate shopping path.");
+      setPathError("Failed to generate shopping path. Please try again.");
+    } finally {
+      setIsPathLoading(false);
     }
   };
 
-  const pathSection = (
-    <section className="my-8">
-      <div className="container">
-        <div className="row">
-          <div className="offset-lg-1 col-lg-10">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-              <h4>Suggested Shopping Path</h4>
-              <button
-                className="btn btn-outline-primary"
-                onClick={() => setShowPath(false)}
-              >
-                <i className="bi bi-x-lg me-2"></i>
-                Close Path
-              </button>
-            </div>
-            <ShoppingListPath
-              layout={storeLayout.items}
-              path={pathData}
-              gridSize={storeLayout.gridSize}
-            />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
+  // Clear cache when shopping list changes
+  useEffect(() => {
+    if (shoppingList.id) {
+      localStorage.removeItem(`shopping-path-${shoppingList.id}`);
+    }
+  }, [shoppingList.items]);
 
   return (
     <div>
@@ -212,7 +316,7 @@ const ShoppingList = () => {
                             in this Shopping List.
                           </p>
                         </div>
-                        {!showPath && shoppingList.items?.length > 0 && (
+                        {shoppingList.items?.length > 0 && (
                           <button
                             className="btn btn-primary"
                             onClick={fetchShoppingPath}
@@ -400,7 +504,18 @@ const ShoppingList = () => {
               </div>
             </section>
 
-            {showPath && pathData && pathSection}
+            <ShoppingListPathModal
+              isOpen={isPathModalOpen}
+              onClose={() => {
+                setIsPathModalOpen(false);
+                setPathError(null);
+              }}
+              layout={storeLayout.items}
+              path={pathData}
+              gridSize={storeLayout.gridSize}
+              isLoading={isPathLoading}
+              error={pathError}
+            />
           </>
         )}
       </div>

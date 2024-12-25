@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import styled from "styled-components";
 
 const PathContainer = styled.div`
@@ -8,7 +8,6 @@ const PathContainer = styled.div`
   overflow: auto;
   background: #f1f5f9;
   border-radius: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   margin: 2rem 0;
 `;
 
@@ -117,18 +116,63 @@ const LegendColor = styled.div`
 `;
 
 const getCategoryColor = (index) => {
-  const colors = [
-    "#3b82f6",
-    "#10b981",
-    "#8b5cf6",
-    "#f59e0b",
-    "#ef4444",
-    "#6366f1",
-  ];
-  return colors[index % colors.length];
-};
+    const colors = [
+      "#3b82f6",
+      "#10b981",
+      "#8b5cf6",
+      "#f59e0b",
+      "#ef4444",
+      "#6366f1",
+    ];
+    return colors[index % colors.length];
+  };
 
-const ShoppingListPath = ({ layout, path, gridSize = 50 }) => {
+const ShoppingListPath = memo(({ layout, path, gridSize = 50 }) => {
+  const renderPath = () => {
+    if (!path || !Array.isArray(path) || path.length === 0) return null;
+
+    return (
+      <svg
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
+          zIndex: 1,
+        }}
+      >
+        <path
+          d={`M ${path.map(point => `${point.x} ${point.y}`).join(" L ")}`}
+          stroke="#ef4444"
+          strokeWidth="3"
+          fill="none"
+          strokeDasharray="5,5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        {/* Add markers for start and end points */}
+        {path.length > 0 && (
+          <>
+            <circle 
+              cx={path[0].x} 
+              cy={path[0].y} 
+              r="5" 
+              fill="#10b981" 
+            />
+            <circle
+              cx={path[path.length - 1].x}
+              cy={path[path.length - 1].y}
+              r="5"
+              fill="#ef4444"
+            />
+          </>
+        )}
+      </svg>
+    );
+  };
+
   return (
     <div>
       <Legend>
@@ -145,7 +189,7 @@ const ShoppingListPath = ({ layout, path, gridSize = 50 }) => {
           <span>Checkout Counter</span>
         </LegendItem>
         <LegendItem>
-          <LegendColor color="#3b82f6" borderColor="#3b82f6" isPath />
+          <LegendColor color="#E74242" borderColor="#E74242" isPath />
           <span>Suggested Path</span>
         </LegendItem>
       </Legend>
@@ -185,47 +229,10 @@ const ShoppingListPath = ({ layout, path, gridSize = 50 }) => {
             )}
           </LayoutItem>
         ))}
-
-        {path &&
-          path.map((point, index) => {
-            if (index < path.length - 1) {
-              const start = point;
-              const end = path[index + 1];
-              const length = Math.sqrt(
-                Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2)
-              );
-              const angle = Math.atan2(end.y - start.y, end.x - start.x);
-
-              return (
-                <PathLine
-                  key={`path-${index}`}
-                  style={{
-                    left: start.x,
-                    top: start.y,
-                    width: length,
-                    transform: `rotate(${angle}rad)`,
-                  }}
-                />
-              );
-            }
-            return null;
-          })}
-
-        {path &&
-          path.map((point, index) => (
-            <PathPoint
-              key={`point-${index}`}
-              style={{
-                left: point.x - 5,
-                top: point.y - 5,
-              }}
-              isStart={index === 0}
-              isEnd={index === path.length - 1}
-            />
-          ))}
+        {renderPath()}
       </PathContainer>
     </div>
   );
-};
+});
 
 export default ShoppingListPath;

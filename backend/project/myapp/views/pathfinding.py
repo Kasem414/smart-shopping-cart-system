@@ -179,11 +179,26 @@ class ShoppingListPathView(APIView):
         min_component_position_x = min(shelf_components, key=lambda c: c.position_x)
         for item in product_list:
             product = item.product
-            # Retrieve the component representing the category
-            category_name = product.category.name.capitalize() # Get the category name
-            components = Component.objects.filter(layout=layout,categories__contains=[category_name])
+            # Try different case variations for category name
+            category_name = product.category.name.capitalize()
+            components = Component.objects.filter(layout=layout, categories__icontains=category_name)
+            
+            # If no match found, try without capitalization
             if not components.exists():
-                return Response({"detail":f"No component matches the category '{category_name}' for product '{product.name}'"},status=status.HTTP_404_NOT_FOUND)
+                category_name = product.category.name  # Original case
+                components = Component.objects.filter(layout=layout, categories__icontains=category_name)
+            
+            # If still no match, try lowercase
+            if not components.exists():
+                category_name = product.category.name.lower()
+                components = Component.objects.filter(layout=layout, categories__icontains=category_name)
+            
+            if not components.exists():
+                return Response(
+                    {"detail": f"No component matches the category '{product.category.name}' for product '{product.name}'"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
             # Get the first matching component and add its position
             category_component = components.first()
             if category_component.position_x == max_component_position_x.position_x:

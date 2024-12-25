@@ -5,6 +5,8 @@ import { MagnifyingGlass } from "react-loader-spinner";
 import { UserContext } from "../contexts/UserContext";
 import { ShoppingListContext } from "../contexts/ShoppingListContext";
 import styled from "styled-components";
+import PathfindingModal from "../pathfinding/PathfindingModal";
+import axios from "axios";
 
 // Add the Message styled component
 const Message = styled.div`
@@ -29,13 +31,31 @@ const ProductDetails = () => {
   const [error, setError] = useState(null);
   const { productId } = useParams();
   const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true); // State to manage loading
+  const [loading, setLoading] = useState(false); // State to manage loading
   const [categoryName, setCategoryName] = useState(""); // State for category name
   const [message, setMessage] = useState({
     text: "",
     success: true,
     visible: false,
   });
+  const [showPathfinding, setShowPathfinding] = useState(false);
+  const [pathData, setPathData] = useState(null);
+  const [storeLayout, setStoreLayout] = useState(null);
+  const [isPathLoading, setIsPathLoading] = useState(false);
+  const [pathError, setPathError] = useState(null);
+
+  // Helper function to transform path data
+  const transformPathData = (pathData) => {
+    if (!pathData || !Array.isArray(pathData)) return [];
+    
+    // If the data is already in {x, y} format, return as is
+    if (pathData[0] && typeof pathData[0] === 'object' && 'x' in pathData[0]) {
+      return pathData;
+    }
+    
+    // Transform from [x, y] format to {x, y} format
+    return pathData.map(([x, y]) => ({ x, y }));
+  };
 
   useEffect(() => {
     // Scroll to top when component mounts
@@ -67,6 +87,83 @@ const ProductDetails = () => {
 
     fetchProductData();
   }, [productId]);
+
+  useEffect(() => {
+    const prefetchPathData = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        if (!token || !productId) return;
+
+        const cacheKey = `product-path-${productId}`;
+        const cachedData = localStorage.getItem(cacheKey);
+
+        if (cachedData) {
+          const parsedCache = JSON.parse(cachedData);
+          const cacheTimestamp = parsedCache.timestamp;
+          const now = Date.now();
+
+          if (now - cacheTimestamp < 5 * 60 * 1000) {
+            setStoreLayout(parsedCache.layout);
+            setPathData(parsedCache.path); // The cached path is already transformed
+            return;
+          }
+        }
+
+        const [layoutRes, pathRes] = await Promise.all([
+          axios.get("http://127.0.0.1:8000/store/layout/", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get(`http://127.0.0.1:8000/shortest-path/${productId}/`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        const transformedPath = transformPathData(pathRes.data.path);
+
+        localStorage.setItem(
+          cacheKey,
+          JSON.stringify({
+            layout: layoutRes.data,
+            path: transformedPath,
+            timestamp: Date.now(),
+          })
+        );
+
+        setStoreLayout(layoutRes.data);
+        setPathData(transformedPath);
+      } catch (err) {
+        console.error("Failed to prefetch path data:", err);
+        setPathError(err.response?.data?.error || "Failed to load path data");
+      }
+    };
+
+    prefetchPathData();
+  }, [productId]);
+
+  const handleShowPathfinding = () => {
+    if (!user) {
+      showMessage("Please log in to view the path", false);
+      return;
+    }
+    setShowPathfinding(true);
+  };
+
+  // Clean up function
+  useEffect(() => {
+    return () => {
+      // Clear states when component unmounts
+      setPathData(null);
+      setStoreLayout(null);
+      setPathError(null);
+      setIsPathLoading(false);
+    };
+  }, []);
+
+  // Handle modal close
+  const handleClosePathfinding = () => {
+    setShowPathfinding(false);
+    setPathError(null);
+  };
 
   if (loading) {
     return (
@@ -174,9 +271,31 @@ const ProductDetails = () => {
                         }
                       }}
                     >
-                      <i className="feather-icon icon-shopping-bag me-2"></i>
+                      <i
+                        className="bi bi-cart3 me-2"
+                        style={{ fontSize: "15px" }}
+                      ></i>
                       Add to list
                     </button>
+                  </div>
+                  <div className="col-xxl-4 col-lg-4 col-md-5 col-5 d-grid">
+                    <button
+                      className="btn btn-primary"
+                      onClick={handleShowPathfinding}
+                    >
+                      <i className="bi bi-map me-2"></i>
+                      Find in Store
+                    </button>
+
+                    <PathfindingModal
+                      isOpen={showPathfinding}
+                      onClose={() => setShowPathfinding(false)}
+                      productId={product.id}
+                      layout={storeLayout}
+                      path={pathData}
+                      isLoading={isPathLoading}
+                      error={pathError}
+                    />
                   </div>
                 </div>
                 <hr className="my-6" />
@@ -208,16 +327,6 @@ const ProductDetails = () => {
                       </tr>
                     </tbody>
                   </table>
-
-                  <div className="mt-4">
-                    <Link 
-                      to={`/product-location/${product.id}`}
-                      className="btn btn-primary d-flex align-items-center gap-2 w-100 justify-content-center"
-                    >
-                      <i className="bi bi-map-fill"></i>
-                      Find in Store
-                    </Link>
-                  </div>
                 </div>
               </div>
             </div>
