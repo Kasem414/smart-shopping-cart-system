@@ -26,39 +26,26 @@ class ShortestPathView(APIView):
 
         # إنشاء الشبكة بناءً على مكونات الخريطة (المناطق التي يمكن أو لا يمكن عبورها)
         components = layout.components.all()
-        # components = [
-        #     {"type": "shelf","position_x": 1, "position_y":1,"width":2,"height":2},
-        #     {"type": "","position_x": 1, "position_y":1,"width":2,"height":2}
-        # ]
-        # grid = [[0 for _ in range(grid_size)] for _ in range(grid_size)]  # شبكة فارغة
         # Automatically adjust grid size to fit all components
         max_x = max(component.position_x + component.width for component in components)
         max_y = max(component.position_y + component.height for component in components)
-        grid_size = max(grid_size, max(max_x, max_y))
-
-        # # Rebuild the grid with the new size
-        # grid = [[0 for _ in range(grid_size)] for _ in range(grid_size)]
-        # Calculate the required grid size dynamically based on components
-        # max_x = max(component.position_x + component.width for component in components)
-        # max_y = max(component.position_y + component.height for component in components)
-        # grid_size = max(max_x, max_y)  # Use the larger value to create a square grid
+        grid_size = max(grid_size, max(max_x, max_y))   # Use the larger value to create a square grid
         # print(f"Grid size:{grid_size}")
-        # # Rebuild the grid with the new size
+        # build the grid with the new size
         grid = [[0 for _ in range(grid_size)] for _ in range(grid_size)]
         # for row in grid:
         #     print(row)
-        print(f"components:{components}")
+        # print(f"components:{components}")
         if not components:
-            print(f"No compoents found")
             return Response({"detail":"No components found in the layout"},status=status.HTTP_404_NOT_FOUND)
         for component in components:
-            print(f"Processing Component:({component.position_x},{component.position_y}) with size ({component.width},{component.height})")
+            # print(f"Processing Component:({component.position_x},{component.position_y}) with size ({component.width},{component.height})")
             if component.type != "aisle":
             # وضع قيمة 1 لأي جزء من الشبكة يمثل عقبة (Obstacle)
                 for x in range(component.position_x,min(component.position_x + component.width,grid_size)):
                     for y in range(component.position_y, min(component.position_y + component.height,grid_size)):
                         grid[x][y] = 1
-                        print(f"marking grid[{x}{y}] as obstacle")
+                        # print(f"marking grid[{x}{y}] as obstacle")
         # Retrieve the component re50esenting the category
         category_name = product.category.name.capitalize()
         components = Component.objects.filter(layout=layout,categories__contains = category_name)
@@ -69,12 +56,10 @@ class ShortestPathView(APIView):
         if not components.exists():
             category_name = product.category.name # Use original case
             components = Component.objects.filter(layout=layout,categories__icontains= category_name)
-            # return Response({"detail": f"No component matches the category '{category_name}'"},status=status.HTTP_404_NOT_FOUND)
         # If still no match, try lowercase 
         if not components.exists():
             category_name = product.category.name.lower() 
             components = Component.objects.filter(layout=layout,categories__icontains= category_name)
-            # return Response({"detail": f"No component matches the category '{category_name}'"},status=status.HTTP_404_NOT_FOUND)
         if not components.exists():
             return Response({"detail": f"No component matches the category '{category_name}'"},status=status.HTTP_404_NOT_FOUND)
         # category_component = components
@@ -99,7 +84,6 @@ class ShortestPathView(APIView):
         # print(f"Product location:{goal}, Grid Size:{len(grid)} x {len(grid[0])}")
         # استخدام استراتيجية A* لحساب المسار
         """
-
         def extend_grid(grid, start, goal):
             """
             Extend the grid dynamically to include the start and goal positions.
@@ -114,33 +98,25 @@ class ShortestPathView(APIView):
             for i in range(rows):
                 for j in range(cols):
                     new_grid[i][j] = grid[i][j]
-            print("final grid:")
+            # print("final grid:")
             # for row in grid:
             #     print(row)
             return new_grid
-        # def extend_and_find_path(grid, start, goal):
-        #     """
-        #     Extend the grid if needed and find the path.
-        #     """
-        #     grid = extend_grid(grid, start, goal)
-        #     # print(f"Grid Size:{len(grid)} x {len(grid[0])}")
-        #     # Validate walkability
-        #     if grid[start[0]][start[1]] != 0:
-        #         raise ValueError(f"Start position {start} is not walkable after grid extension.")
-
-        #     if grid[goal[0]][goal[1]] != 0:
-        #         raise ValueError(f"Goal position {goal} is not walkable after grid extension.")
         # Initialize variables to store the smallest path
         smallest_path = None
         smallest_path_length = float('inf') # Set initial value to infinity
+        shelf_components = Component.objects.filter(layout=layout,type="shelf")
+        max_component_position_x = max(shelf_components, key=lambda c: c.position_x)
+        min_component_position_x = min(shelf_components, key=lambda c: c.position_x)
         # Iterate through all components to find the goal position
         for component in components:
         # Set product location based on the component's position
-            if component.position_x > 200:
-                product_location = (component.position_x,component.position_y + 50)
-            else: 
+            if component.position_x == min_component_position_x.position_x:
                 product_location = (component.position_x+100,component.position_y + 50)
+            elif component.position_x == max_component_position_x.position_x:
+                product_location = (component.position_x,component.position_y + 50)
             goal = product_location  # موقع المنتج
+            grid = extend_grid(grid=grid,start=start,goal=goal)
             pathfinding_context = PathfindingContext(AStarPathfinding())  # تعيين الاستراتيجية
             path = pathfinding_context.calculate_path(grid, start, goal)  # حساب المسار
             # في حالة عدم وجود مسار صالح، إرسال رسالة خطأ
@@ -152,34 +128,9 @@ class ShortestPathView(APIView):
             
         # validate_path(grid,path,start,goal)
         # إرسال المسار كاستجابة JSON
-        print(f"path:{smallest_path}")
+        # print(f"path:{smallest_path}")
         return Response({"path": smallest_path}, status=status.HTTP_200_OK)
-        # def adjust_to_bounds(grid, position):
-        #     """
 
-        #     Adjust the given position to be within the bounds of the grid.
-        #     """
-        #     rows, cols = len(grid), len(grid[0])
-        #     x, y = position
-        #     x = min(max(x, 0), rows - 1)  # Clamp x to [0, rows - 1]
-        #     y = min(max(y, 0), cols - 1)  # Clamp y to [0, cols - 1]
-        #     return x, y
-        # def adjust_positions_and_find_path(grid, start, goal):
-        #     """
-        #     Adjust the start and goal positions if they are out of bounds and find the path.
-        #     """
-        #     start = adjust_to_bounds(grid, start)
-        #     goal = adjust_to_bounds(grid, goal)
-
-        #     # Validate walkability
-        #     if grid[start[0]][start[1]] != 0:
-        #         raise ValueError(f"Adjusted start position {start} is not walkable.")
-
-        #     if grid[goal[0]][goal[1]] != 0:
-        #         raise ValueError(f"Adjusted goal position {goal} is not walkable.")
-        #     return goal
-        # adjust_to_bounds(grid=grid,position=product_location)
-        # goal=adjust_positions_and_find_path(grid=grid,start=start,goal=goal)
 
 class ShoppingListPathView(APIView):
     """
@@ -223,6 +174,9 @@ class ShoppingListPathView(APIView):
         product_list = ShoppingListItem.objects.filter(shopping_list=shopping_list.id)
         product_locations = []
         # Loop through all products in the shopping list
+        shelf_components = Component.objects.filter(layout=layout,type="shelf")
+        max_component_position_x = max(shelf_components, key=lambda c: c.position_x)
+        min_component_position_x = min(shelf_components, key=lambda c: c.position_x)
         for item in product_list:
             product = item.product
             # Retrieve the component representing the category
@@ -232,10 +186,15 @@ class ShoppingListPathView(APIView):
                 return Response({"detail":f"No component matches the category '{category_name}' for product '{product.name}'"},status=status.HTTP_404_NOT_FOUND)
             # Get the first matching component and add its position
             category_component = components.first()
-            if category_component.position_x > 200:
+            if category_component.position_x == max_component_position_x.position_x:
                 product_locations.append((category_component.position_x,category_component.position_y + 50))
-            else: 
+            elif category_component.position_x == min_component_position_x.position_x: 
                 product_locations.append((category_component.position_x+100,category_component.position_y + 50))
+        
+            # if category_component.position_x > 200:
+            #     product_locations.append((category_component.position_x,category_component.position_y + 50))
+            # else: 
+            #     product_locations.append((category_component.position_x+100,category_component.position_y + 50))
             # product_locations.append((category_component.position_x,category_component.position_y))
         # تعريف نقطة البداية (مدخل المتجر) ونقطة الهدف (موقع المنتج)
         entrance = Component.objects.filter(type="entrance",layout=layout).first()
@@ -245,8 +204,6 @@ class ShoppingListPathView(APIView):
                 start = [(center_x,center_y)]  # مدخل المتجر
         else:
             return Response({"details":"You Should drag and drop entrance component on your layout!"},status=status.HTTP_400_BAD_REQUEST)
-        # Add the store entrance as the starting point
-        # إضافة مدخل المتجر كنقطة بداية
         points = start + product_locations
         # Validate connectivity
         # Use TSP strategy to calculate the optimal sequence
