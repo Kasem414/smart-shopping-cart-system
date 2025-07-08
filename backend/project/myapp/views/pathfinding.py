@@ -46,7 +46,7 @@ class ShortestPathView(APIView):
                     for y in range(component.position_y, min(component.position_y + component.height,grid_size)):
                         grid[x][y] = 1
                         # print(f"marking grid[{x}{y}] as obstacle")
-        # Retrieve the component re50esenting the category
+        # Retrieve the component repesenting the category
         category_name = product.category.name.capitalize()
         components = Component.objects.filter(layout=layout,categories__contains = category_name)
         # Try case-insensitive
@@ -220,7 +220,7 @@ class ShoppingListPathView(APIView):
         else:
             return Response({"details":"You Should drag and drop entrance component on your layout!"},status=status.HTTP_400_BAD_REQUEST)
         points = start + product_locations
-        # Validate connectivity
+        
         # Use TSP strategy to calculate the optimal sequence
         # استخدام خوارزمية TSP لحساب التسلسل الأمثل للنقاط
         navigation_context = NavigationContext(TSPNavigation())

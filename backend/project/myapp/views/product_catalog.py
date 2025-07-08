@@ -30,7 +30,7 @@ class ProductByStoreView(generics.ListAPIView):
     serializer_class = ProductStoreSerializer
 
     def get(self, request, *args, **kwargs):
-        product_data = repo.get_product_by_id(product_id=kwargs['id'])
+        product_data = repo.get_product_by_store(store_id=kwargs['id'])
         serializer=self.serializer_class(instance=product_data, many=True)
         response={"message":"the requested product for a specific store", 'data':serializer.data}
         return Response(data=response, status=status.HTTP_200_OK)

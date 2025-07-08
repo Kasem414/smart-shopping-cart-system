@@ -81,7 +81,7 @@ class ActivateUserView(APIView):
            if user.account_type == 'store_owner' or user.account_type == 'customer':
             user.is_active = True
             user.save()
-            return Response({"message":'User has been deactivated'},status=status.HTTP_200_OK)
+            return Response({"message":'User has been activated'},status=status.HTTP_200_OK)
         except MyUser.DoesNotExist:
             return Response({"error":"User not found"},status=status.HTTP_404_NOT_FOUND)
 

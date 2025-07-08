@@ -33,7 +33,7 @@ class ProductCreateView(generics.CreateAPIView):
         product_data['store_id'] = store.id
         # Check if product with same name exists in the store
         name = product_data.get('name')
-        if Category.objects.filter(name=name,store_id=store.id).exists():
+        if Product.objects.filter(name=name,store_id=store.id).exists():
             raise ValidationError({'message':'Product already exists for your store.'})
         serializer=self.serializer_class(data=product_data,context={'request': request})
         if serializer.is_valid(raise_exception=True):
